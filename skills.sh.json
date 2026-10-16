@@ -1,0 +1,1 @@
+{"$schema":"https://skills.sh/schemas/skills.sh.schema.json","groupings":[{"description":"面向网络小说作者的 Agent Skills：投稿前自查、过审签约。","skills":["signcheck-novel-zh"],"title":"网文创作"}],"notGrouped":"bottom"}
