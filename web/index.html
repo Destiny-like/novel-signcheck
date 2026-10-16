@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>签约前自查 · 网文投稿模拟考</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">签</div>
+    <div class="brand-text">
+      <div class="brand-name">签约前自查</div>
+      <div class="brand-sub">网文投稿模拟考</div>
+    </div>
+    <span class="ver-badge">v0.2</span>
+  </div>
+  <div class="topbar-right">
+    <span class="policy-mini">番茄 v2026.10.12 · 七猫 v2026.10.16 · 起点 v2026.10.16</span>
+    <button id="themeToggle" class="icon-btn" title="切换浅色/深色">◐</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <nav id="stepNav">
+      <a href="#step1" data-step="step1"><span class="n">1</span><span class="t"><b>选择平台</b><i>三平台审核口径不同</i></span></a>
+      <a href="#step2" data-step="step2"><span class="n">2</span><span class="t"><b>平台策略卡</b><i>签约流程·收益·红线</i></span></a>
+      <a href="#step3" data-step="step3"><span class="n">3</span><span class="t"><b>粘贴检测</b><i>AI 味机械初筛</i></span></a>
+      <a href="#step4" data-step="step4"><span class="n">4</span><span class="t"><b>资格自查</b><i>硬性门槛核对</i></span></a>
+      <a href="#step5" data-step="step5"><span class="n">5</span><span class="t"><b>深度复核</b><i>BYOK · 五维评分</i></span></a>
+    </nav>
+    <div class="side-foot">
+      <div class="side-foot-title">检测说明</div>
+      <p>本地运行，正文不上传。<br>机械检测只做初筛，结论以五维复核为准。</p>
+    </div>
+  </aside>
+
+  <main>
+    <section class="panel" id="step1">
+      <div class="panel-head"><h2>选择目标平台</h2><span class="panel-desc">番茄签约前拒签"AI 粗制滥造"（最严）· 七猫人工编辑看开篇+AI 标注 · 起点治理"水文"</span></div>
+      <div id="platformCards" class="pcards"></div>
+    </section>
+
+    <section class="panel" id="step2">
+      <div class="panel-head"><h2>平台策略卡</h2><span class="panel-desc">先看规则再动笔</span></div>
+      <div id="policyCard"></div>
+    </section>
+
+    <section class="panel" id="step3">
+      <div class="panel-head"><h2>粘贴正文并检测</h2><span class="panel-desc">建议至少前 3 章；起点建议前 10 章以便查水文</span></div>
+      <textarea id="inputText" rows="9" placeholder="在此粘贴小说正文……"></textarea>
+      <div class="action-row">
+        <span id="charCount" class="muted">0 字</span>
+        <button id="detectBtn" class="primary">开始检测</button>
+      </div>
+      <div id="result"></div>
+    </section>
+
+    <section class="panel" id="step4">
+      <div class="panel-head"><h2>签约资格自查</h2><span class="panel-desc">手动勾选，硬性项未达标即判不通过</span></div>
+      <div id="checklist"></div>
+    </section>
+
+    <section class="panel" id="step5">
+      <div class="panel-head"><h2>AI 深度复核 <span class="tag">可选 · 自备 Key</span></h2><span class="panel-desc">BYOK：Key 只存本机，浏览器直调模型接口</span></div>
+      <div class="byok-grid">
+        <input id="apiEndpoint" placeholder="接口地址（默认 https://api.deepseek.com/v1）">
+        <input id="apiModel" placeholder="模型（默认 deepseek-chat）">
+        <input id="apiKey" type="password" placeholder="API Key（只存本机 localStorage）">
+        <div class="byok-actions">
+          <button id="saveKeyBtn" class="ghost">保存 Key 到本机</button>
+          <button id="deepBtn" class="primary">AI 深度复核（五维）</button>
+        </div>
+      </div>
+      <div id="deepResult"></div>
+    </section>
+
+    <footer>
+      signcheck-novel-zh v0.2 · 策略卡带版本号，过期 90 天未更新会预警 · 知乎盐选 v0.3 补齐
+    </footer>
+  </main>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

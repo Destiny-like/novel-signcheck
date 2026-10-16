@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>签约前自查 · 网文投稿模拟考</title>
+<style>
+/* 签约前自查 · v0.3 UI
+ * 设计语言：深色工作台（学自 Denova / 青烛这类 AI 写作工具）
+ * 默认深色 + 浅色切换；印章红为品牌点缀色
+ */
+
+:root, [data-theme="dark"] {
+  --bg: #0f1113;
+  --surface: #16181b;
+  --surface-2: #1d2024;
+  --surface-3: #24282e;
+  --border: #262b31;
+  --border-soft: #1e2227;
+  --text: #e9eaec;
+  --text-2: #a9b0b8;
+  --text-3: #6d757e;
+  --accent: #e5484d;
+  --accent-soft: rgba(229, 72, 77, .12);
+  --pass: #3fb950; --pass-bg: rgba(63, 185, 80, .1);
+  --review: #d29922; --review-bg: rgba(210, 153, 34, .1);
+  --fail: #f85149; --fail-bg: rgba(248, 81, 73, .1);
+  --shadow: 0 8px 28px rgba(0, 0, 0, .35);
+}
+[data-theme="light"] {
+  --bg: #f4f2ed;
+  --surface: #fffdf9;
+  --surface-2: #faf7f0;
+  --surface-3: #f1ece1;
+  --border: #e3dccb;
+  --border-soft: #ece5d3;
+  --text: #22211d;
+  --text-2: #5c574a;
+  --text-3: #9a937f;
+  --accent: #b3402a;
+  --accent-soft: rgba(179, 64, 42, .08);
+  --pass: #2e7d32; --pass-bg: rgba(46, 125, 50, .08);
+  --review: #b25e09; --review-bg: rgba(178, 94, 9, .08);
+  --fail: #b3402a; --fail-bg: rgba(179, 64, 42, .08);
+  --shadow: 0 1px 2px rgba(35,33,28,.05), 0 8px 24px rgba(35,33,28,.06);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.6;
+}
+
+/* ---------- 顶栏 ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 60;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 58px; padding: 0 20px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo {
+  width: 34px; height: 34px; border-radius: 9px;
+  background: linear-gradient(135deg, #e5484d, #a02c30);
+  color: #fff; font-size: 19px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 10px rgba(229, 72, 77, .4);
+}
+.brand-name { font-size: 16px; font-weight: 750; letter-spacing: .04em; }
+.brand-sub { font-size: 11px; color: var(--text-3); }
+.ver-badge {
+  font-size: 11px; font-weight: 700; color: var(--accent);
+  background: var(--accent-soft); border: 1px solid var(--accent);
+  border-radius: 999px; padding: 2px 10px;
+}
+.topbar-right { display: flex; align-items: center; gap: 14px; }
+.policy-mini { font-size: 11.5px; color: var(--text-3); }
+.icon-btn {
+  width: 34px; height: 34px; border-radius: 9px; padding: 0;
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--text-2); font-size: 16px; cursor: pointer;
+}
+.icon-btn:hover { color: var(--text); border-color: var(--accent); }
+
+/* ---------- 布局 ---------- */
+.layout { display: flex; max-width: 1280px; margin: 0 auto; align-items: flex-start; }
+.sidebar {
+  position: sticky; top: 58px; width: 248px; flex-shrink: 0;
+  height: calc(100vh - 58px); overflow-y: auto;
+  padding: 20px 14px; border-right: 1px solid var(--border-soft);
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+#stepNav { display: flex; flex-direction: column; gap: 4px; }
+#stepNav a {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 10px;
+  text-decoration: none; color: var(--text-2);
+  border: 1px solid transparent; transition: all .15s;
+}
+#stepNav a .n {
+  width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
+  background: var(--surface-3); color: var(--text-3);
+  font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+#stepNav a .t b { display: block; font-size: 13.5px; font-weight: 650; }
+#stepNav a .t i { display: block; font-style: normal; font-size: 11px; color: var(--text-3); }
+#stepNav a:hover { background: var(--surface-2); }
+#stepNav a.active { background: var(--surface-2); border-color: var(--border); color: var(--text); }
+#stepNav a.active .n { background: var(--accent); color: #fff; }
+.side-foot { margin-top: 20px; padding: 14px; background: var(--surface-2);
+  border: 1px solid var(--border-soft); border-radius: 10px; }
+.side-foot-title { font-size: 12px; font-weight: 700; color: var(--text-2); margin-bottom: 6px; }
+.side-foot p { margin: 0; font-size: 11.5px; color: var(--text-3); line-height: 1.8; }
+
+main { flex: 1; min-width: 0; padding: 20px 22px 60px; }
+.panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 22px; margin-bottom: 16px;
+  scroll-margin-top: 74px;
+}
+.panel-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.panel-head h2 { margin: 0; font-size: 17px; font-weight: 750; }
+.panel-desc { font-size: 12.5px; color: var(--text-3); }
+.tag { font-size: 11px; color: var(--text-3); border: 1px solid var(--border);
+  border-radius: 999px; padding: 2px 10px; font-weight: 400; }
+
+/* ---------- 平台卡片 ---------- */
+.pcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.pcard {
+  position: relative; text-align: left; cursor: pointer; font-family: inherit;
+  background: var(--surface-2); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 16px; color: var(--text);
+  transition: all .16s;
+}
+.pcard:hover { border-color: var(--text-3); transform: translateY(-1px); }
+.pcard.active { border-color: var(--accent); background: var(--accent-soft); }
+.pcard.active::after {
+  content: "✓"; position: absolute; top: 12px; right: 12px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); color: #fff; font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.pcard-name { font-size: 16px; font-weight: 750; }
+.pcard-tag { font-size: 12px; color: var(--text-2); margin-top: 6px; line-height: 1.6; min-height: 38px; }
+.pcard-ai { font-size: 12px; margin-top: 8px; }
+.pcard-ai .sev { font-weight: 700; padding: 1px 8px; border-radius: 999px; font-size: 11px; }
+.sev.s-high { color: var(--fail); background: var(--fail-bg); }
+.sev.s-mid { color: var(--review); background: var(--review-bg); }
+.pcard-ver { font-size: 11px; color: var(--text-3); margin-top: 6px; }
+
+/* ---------- 策略卡 ---------- */
+.pol-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+.pol-head h3 { margin: 0; font-size: 16px; }
+.pol-head .ver { font-size: 11.5px; color: var(--text-3); }
+.ai-policy {
+  margin: 12px 0; padding: 12px 14px; font-size: 13.5px; line-height: 1.7;
+  background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+}
+.kv { font-size: 13.5px; margin: 10px 0; line-height: 1.7; }
+.kv b { color: var(--text-2); font-weight: 650; margin-right: 8px; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 4px 0; }
+.cols h4 { margin: 0 0 6px; font-size: 13px; color: var(--text-2); }
+.cols ol, .cols ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--text-2); line-height: 1.9; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.chip { font-size: 12px; padding: 4px 12px; border-radius: 999px;
+  background: var(--surface-3); border: 1px solid var(--border); color: var(--text-2); }
+.chip.danger { color: var(--fail); border-color: var(--fail); background: var(--fail-bg); }
+
+/* ---------- 输入与按钮 ---------- */
+textarea {
+  width: 100%; background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px; font-size: 14px; line-height: 1.9; font-family: inherit;
+  resize: vertical; transition: border-color .15s;
+}
+textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+textarea::placeholder { color: var(--text-3); }
+.action-row { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+.muted { color: var(--text-3); font-size: 12.5px; }
+button { font-family: inherit; border-radius: 10px; padding: 10px 24px;
+  font-size: 14px; font-weight: 650; cursor: pointer; transition: all .15s; }
+button.primary { background: var(--accent); color: #fff; border: none; }
+button.primary:hover { filter: brightness(1.1); }
+button.primary:disabled { opacity: .55; cursor: wait; }
+button.ghost { background: transparent; border: 1px solid var(--border); color: var(--text-2); }
+button.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- 结论横幅 ---------- */
+.verdict {
+  display: flex; gap: 14px; align-items: flex-start;
+  border-radius: 12px; padding: 18px; margin: 18px 0 4px;
+  border: 1px solid; border-left-width: 4px;
+}
+.verdict.v-pass { background: var(--pass-bg); border-color: var(--pass); }
+.verdict.v-review { background: var(--review-bg); border-color: var(--review); }
+.verdict.v-fail { background: var(--fail-bg); border-color: var(--fail); }
+.v-icon { font-size: 26px; line-height: 1.2; }
+.v-pass .v-icon { color: var(--pass); } .v-review .v-icon { color: var(--review); } .v-fail .v-icon { color: var(--fail); }
+.v-label { font-size: 19px; font-weight: 800; }
+.v-pass .v-label { color: var(--pass); } .v-review .v-label { color: var(--review); } .v-fail .v-label { color: var(--fail); }
+.v-hint { font-size: 13px; color: var(--text-2); margin-top: 4px; }
+.v-policy { font-size: 12px; color: var(--text-3); margin-top: 6px; }
+.v-reasons { margin: 8px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.8; color: var(--text-2); }
+
+/* ---------- 指标瓷砖 ---------- */
+.metric-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 16px 0; }
+.metric { background: var(--surface-2); border: 1px solid var(--border-soft);
+  border-radius: 10px; padding: 12px 8px; text-align: center; }
+.m-num { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.m-num.warn { color: var(--review); } .m-num.bad { color: var(--fail); }
+.m-label { font-size: 11px; color: var(--text-3); margin-top: 4px; line-height: 1.5; }
+
+/* ---------- 信号行（审阅面板风） ---------- */
+.sec-title { font-size: 14px; font-weight: 700; margin: 20px 0 10px;
+  display: flex; align-items: center; gap: 8px; }
+.sec-title::before { content: ""; width: 3px; height: 14px; background: var(--accent); border-radius: 2px; }
+.sig-list { display: flex; flex-direction: column; gap: 8px; }
+.sig-row {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--surface-2); border: 1px solid var(--border-soft);
+  border-radius: 10px; padding: 12px 14px;
+}
+.sig-row.sev-high { border-left: 3px solid var(--fail); }
+.sig-row.sev-medium { border-left: 3px solid var(--review); }
+.sig-row.sev-low { border-left: 3px solid var(--text-3); }
+.sev-pill { flex-shrink: 0; font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 999px; margin-top: 2px; }
+.sev-pill.sev-high { color: var(--fail); background: var(--fail-bg); }
+.sev-pill.sev-medium { color: var(--review); background: var(--review-bg); }
+.sev-pill.sev-low { color: var(--text-3); background: var(--surface-3); }
+.sig-body { flex: 1; min-width: 0; }
+.sig-name { font-size: 13.5px; font-weight: 700; }
+.sig-why { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.sig-ex { font-size: 12px; color: var(--text-2); margin-top: 6px; }
+.sig-ex code { background: var(--surface-3); padding: 1px 7px; border-radius: 5px;
+  font-size: 11.5px; margin-right: 6px; }
+.sig-stat { flex-shrink: 0; text-align: right; font-size: 12px; color: var(--text-3); }
+.sig-stat b { display: block; font-size: 17px; color: var(--text); font-variant-numeric: tabular-nums; }
+
+.risk-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.risk-list li { background: var(--review-bg); border: 1px solid var(--review);
+  border-radius: 10px; padding: 10px 14px; font-size: 13px; }
+.dup-list { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--text-2); line-height: 2; }
+.dup-list code { background: var(--surface-3); padding: 1px 7px; border-radius: 5px; }
+.focus-box { background: var(--surface-2); border: 1px solid var(--border-soft);
+  border-radius: 10px; padding: 12px 14px; font-size: 13px; margin-top: 14px; }
+.focus-box b { color: var(--accent); }
+.empty-note { color: var(--text-3); font-size: 13px; padding: 12px; text-align: center;
+  background: var(--surface-2); border-radius: 10px; border: 1px dashed var(--border); }
+.disclaimer { font-size: 11.5px; color: var(--text-3); line-height: 1.8; margin-top: 14px; }
+
+/* ---------- checklist ---------- */
+.check-item {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 11px 4px; border-bottom: 1px solid var(--border-soft);
+  cursor: pointer; font-size: 13.5px;
+}
+.check-item:last-of-type { border-bottom: none; }
+.check-item input { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--accent); flex-shrink: 0; }
+.check-item.done span:last-child { color: var(--text-3); text-decoration: line-through; }
+.badge { font-size: 11px; padding: 2px 10px; border-radius: 999px; white-space: nowrap; font-weight: 700; flex-shrink: 0; }
+.badge.blocking { color: var(--fail); background: var(--fail-bg); }
+.badge.advisory { color: var(--pass); background: var(--pass-bg); }
+#evalBtn { margin-top: 14px; }
+.check-verdict { margin-top: 12px; font-size: 13.5px; line-height: 1.8; }
+.check-verdict .ok { color: var(--pass); font-weight: 700; }
+.check-verdict .ng { color: var(--fail); font-weight: 700; }
+.check-verdict ul { margin: 8px 0 0; padding-left: 18px; color: var(--text-2); }
+
+/* ---------- BYOK ---------- */
+.byok-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.byok-grid input {
+  background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 11px 13px; font-size: 13.5px; font-family: inherit;
+}
+.byok-grid input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.byok-grid input::placeholder { color: var(--text-3); }
+.byok-actions { grid-column: 1 / -1; display: flex; gap: 10px; }
+pre {
+  white-space: pre-wrap; background: var(--surface-2);
+  border: 1px solid var(--border-soft); border-radius: 10px;
+  padding: 16px; font-size: 13px; line-height: 1.8; margin-top: 14px;
+}
+
+footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top: 36px; line-height: 2; }
+
+/* ---------- AI 深度复核（五维语义） ---------- */
+.verdict-banner { background: var(--surface-2); border: 1px solid var(--border-soft);
+  border-radius: 10px; padding: 14px 16px; margin: 12px 0; font-size: 14px; line-height: 1.7; }
+.metric-grid.deep-dims { grid-template-columns: repeat(5, 1fr); }
+.metric .m-desc { font-size: 11px; color: var(--text-3); margin-top: 6px; line-height: 1.6; }
+.ev-chip { display: inline-block; font-size: 11px; color: var(--text-2); background: var(--surface-3);
+  border: 1px solid var(--border-soft); border-radius: 20px; padding: 2px 10px; margin: 4px 4px 0 0; }
+.counter { font-size: 12.5px; color: var(--text-3); background: var(--surface-2);
+  border: 1px dashed var(--border-soft); border-radius: 10px; padding: 10px 14px; margin-top: 12px; line-height: 1.7; }
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .metric-grid { grid-template-columns: repeat(3, 1fr); }
+  .policy-mini { display: none; }
+}
+@media (max-width: 640px) {
+  .pcards, .cols, .byok-grid { grid-template-columns: 1fr; }
+  main { padding: 14px 12px 50px; }
+  .panel { padding: 16px; }
+  .sig-row { flex-wrap: wrap; }
+}
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">签</div>
+    <div class="brand-text">
+      <div class="brand-name">签约前自查</div>
+      <div class="brand-sub">网文投稿模拟考</div>
+    </div>
+    <span class="ver-badge">v0.2</span>
+  </div>
+  <div class="topbar-right">
+    <span class="policy-mini">番茄 v2026.10.12 · 七猫 v2026.10.16 · 起点 v2026.10.16</span>
+    <button id="themeToggle" class="icon-btn" title="切换浅色/深色">◐</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <nav id="stepNav">
+      <a href="#step1" data-step="step1"><span class="n">1</span><span class="t"><b>选择平台</b><i>三平台审核口径不同</i></span></a>
+      <a href="#step2" data-step="step2"><span class="n">2</span><span class="t"><b>平台策略卡</b><i>签约流程·收益·红线</i></span></a>
+      <a href="#step3" data-step="step3"><span class="n">3</span><span class="t"><b>粘贴检测</b><i>AI 味机械初筛</i></span></a>
+      <a href="#step4" data-step="step4"><span class="n">4</span><span class="t"><b>资格自查</b><i>硬性门槛核对</i></span></a>
+      <a href="#step5" data-step="step5"><span class="n">5</span><span class="t"><b>深度复核</b><i>BYOK · 五维评分</i></span></a>
+    </nav>
+    <div class="side-foot">
+      <div class="side-foot-title">检测说明</div>
+      <p>本地运行，正文不上传。<br>机械检测只做初筛，结论以五维复核为准。</p>
+    </div>
+  </aside>
+
+  <main>
+    <section class="panel" id="step1">
+      <div class="panel-head"><h2>选择目标平台</h2><span class="panel-desc">番茄签约前拒签"AI 粗制滥造"（最严）· 七猫人工编辑看开篇+AI 标注 · 起点治理"水文"</span></div>
+      <div id="platformCards" class="pcards"></div>
+    </section>
+
+    <section class="panel" id="step2">
+      <div class="panel-head"><h2>平台策略卡</h2><span class="panel-desc">先看规则再动笔</span></div>
+      <div id="policyCard"></div>
+    </section>
+
+    <section class="panel" id="step3">
+      <div class="panel-head"><h2>粘贴正文并检测</h2><span class="panel-desc">建议至少前 3 章；起点建议前 10 章以便查水文</span></div>
+      <textarea id="inputText" rows="9" placeholder="在此粘贴小说正文……"></textarea>
+      <div class="action-row">
+        <span id="charCount" class="muted">0 字</span>
+        <button id="detectBtn" class="primary">开始检测</button>
+      </div>
+      <div id="result"></div>
+    </section>
+
+    <section class="panel" id="step4">
+      <div class="panel-head"><h2>签约资格自查</h2><span class="panel-desc">手动勾选，硬性项未达标即判不通过</span></div>
+      <div id="checklist"></div>
+    </section>
+
+    <section class="panel" id="step5">
+      <div class="panel-head"><h2>AI 深度复核 <span class="tag">可选 · 自备 Key</span></h2><span class="panel-desc">BYOK：Key 只存本机，浏览器直调模型接口</span></div>
+      <div class="byok-grid">
+        <input id="apiEndpoint" placeholder="接口地址（默认 https://api.deepseek.com/v1）">
+        <input id="apiModel" placeholder="模型（默认 deepseek-chat）">
+        <input id="apiKey" type="password" placeholder="API Key（只存本机 localStorage）">
+        <div class="byok-actions">
+          <button id="saveKeyBtn" class="ghost">保存 Key 到本机</button>
+          <button id="deepBtn" class="primary">AI 深度复核（五维）</button>
+        </div>
+      </div>
+      <div id="deepResult"></div>
+    </section>
+
+    <footer>
+      signcheck-novel-zh v0.2 · 策略卡带版本号，过期 90 天未更新会预警 · 知乎盐选 v0.3 补齐
+    </footer>
+  </main>
+</div>
+
+<script>
+"use strict";
+
+/* 平台策略卡结构化数据（由 references/platform-*.md 转换）
+ * policy_version / effective_date 随平台政策更新，需与 skill 包内 references 保持一致
+ */
+
+const PLATFORMS = {
+  fanqie: {
+    id: "fanqie",
+    name: "番茄小说",
+    policy_version: "v2026.10.12",
+    effective_date: "2026-10-12",
+    tagline: "字节系免费平台，流量最大，算法推荐",
+    ai_policy: "签约前拒签“AI 粗制滥造”（行文机械/语言模板化/空洞水文）",
+    ai_strictness: "最严",
+    key_metrics: ["完读率", "留存", "翻页率"],
+    signing: [
+      "Lv.0/Lv.1 新作品只能“完本签约”：完本 15–30 万字（按分类）后整书一次性审核",
+      "每部作品共 3 次申请机会，用尽则永久无法申请",
+      "Lv.2+ 可自由选择连载签约/完本签约；连载签约满 2 万字可申请",
+      "签约成功后正文锁定，不可修改/删除",
+    ],
+    welfare: [
+      "广告分成：作者与平台五五分成",
+      "全勤（签约+满10万字次月起+当月分成≥200）：日更4000字=600元/月+分成5%（上限1500）；日更6000字=800+5%（上限2000）",
+      "打赏：作者得扣除渠道费后的 70%",
+    ],
+    redlines: ["AI 粗制滥造（行文机械/模板化/空洞水文）", "低龄读者红线（早恋美化/校园暴力/不良价值观）", "简介红线词"],
+    checklist: [
+      { text: "作者等级与签约模式匹配（Lv.0/1 是否已完本达标）", blocking: true },
+      { text: "字数门槛：连载 2 万 / 完本 15–30 万（按分类）", blocking: true },
+      { text: "AI 味检测通过（防“AI 粗制滥造”）", blocking: true },
+      { text: "合规红线扫描通过（含低龄读者红线）", blocking: true },
+      { text: "开篇 3 章：300 字内出钩子，爽点密度≥1 个/章", blocking: false },
+      { text: "单章 2000–3000 字，短平快", blocking: false },
+    ],
+    materials: ["简介", "大纲", "联系方式", "（完本签约需确认全书字数达标）"],
+  },
+  qimao: {
+    id: "qimao",
+    name: "七猫小说",
+    policy_version: "v2026.10.16",
+    effective_date: "2026-10-16",
+    tagline: "免费平台，编辑内投制，新人友好",
+    ai_policy: "2026-09-01《生成式AI服务管理办法》施行，七猫要求作者标注AI辅助使用情况；人工编辑初审，开篇三章是生死线",
+    ai_strictness: "严（开篇+标注）",
+    key_metrics: ["完读率"],
+    signing: [
+      "内投制：2 万字正文 + 大纲 + 投稿申请表，投编辑 QQ/邮箱",
+      "人工编辑审核，会给修改意见；过签后有编辑带",
+      "也支持直接注册发文，满 2 万字申请签约评估",
+    ],
+    welfare: [
+      "全勤：签约后千字 6 元，从签约第一个字起算",
+      "保底分成：保底约千字 20 元起，完读率高可达千字 80–200 元",
+      "日更 4000 字是拿全勤的常规线",
+    ],
+    redlines: ["开篇模板化（编辑一眼刷掉）", "题材调性不符（女频新媒体爽文为主）"],
+    checklist: [
+      { text: "正文 ≥2 万字；大纲完备（梗概+分卷/分章细纲+人物小传）", blocking: true },
+      { text: "开篇三章钩子强度：第一章 1000 字内出现核心冲突或强悬念", blocking: true },
+      { text: "AI 味检测通过（开篇单独加权，<35 分即不通过）", blocking: true },
+      { text: "题材调性匹配（女频新媒体爽文感 / 男频收稿品类）", blocking: true },
+      { text: "主角有明确欲望与困境，配角有辨识度", blocking: false },
+    ],
+    materials: ["正文", "大纲", "人物小传", "申请表", "联系方式", "（注明目标编辑/投稿邮箱）"],
+  },
+  qidian: {
+    id: "qidian",
+    name: "起点中文网",
+    policy_version: "v2026.10.16",
+    effective_date: "2026-10-16",
+    tagline: "阅文旗下，男频龙头，付费订阅制",
+    ai_policy: "2026 AI 水文治理（清理榜单、限定日更）；“文学本身不能是AI”",
+    ai_strictness: "中（上架后治理）",
+    key_metrics: ["追读率", "均订", "月票"],
+    signing: [
+      "注册发文，正文满 6000 字编辑直接初审",
+      "累计发布正文满 10 万字可自主申请签约一次",
+      "邮箱投稿：书名 + 开篇正文 2 万字（+大纲为佳）",
+    ],
+    welfare: [
+      "订阅分成：作者得 50%（五五分成）",
+      "全勤/创作补贴：入 V 后日更 4000 字+（约 600–1500 元/月分档，⚠️以作家专区最新公告为准）",
+      "打赏作者得 50%；IP 改编是核心长线价值",
+    ],
+    redlines: ["AI 水文（灌水、空洞、模板化长篇章节）", "“文学本身是 AI”（核心创意须出自作者本人）"],
+    checklist: [
+      { text: "签约资格三选一：6000 字初审 / 10 万字自助申请 / 邮箱 2 万字+大纲", blocking: true },
+      { text: "AI 水文检查：信息密度、重复铺陈≥3 处高风险", blocking: true },
+      { text: "“文学本身”检查：核心创意/人物/情节出自作者本人", blocking: true },
+      { text: "章末钩子密度、悬念设置（起点拼追读）", blocking: false },
+      { text: "题材在男频核心品类内（玄幻/仙侠/都市/历史/轻小说）", blocking: false },
+    ],
+    materials: ["书名", "开篇正文", "大纲", "联系方式"],
+  },
+};
+
+const VERDICT_TEXT = {
+  pass: { label: "通过", hint: "机械指标未触发平台红线，可进入投稿流程" },
+  review: { label: "有条件通过", hint: "存在预警项，按下方修改建议处理后可投" },
+  fail: { label: "不通过", hint: "存在硬伤，请按修改建议返工后再测" },
+};
+
+/* AI 味 + 平台口径检测 v0.2（JS 移植版，纯本地运行）
+ * 由 scripts/ai_feel_check.py v0.2 完整移植，逻辑保持一致。
+ * 用法：import { analyze } from './detector.js'; analyze(text, 'fanqie'|'qimao'|'qidian')
+ */
+
+const PLATFORM_PROFILES = {
+  fanqie: {
+    label: "番茄小说",
+    policy: "签约前拒签'AI 粗制滥造'（行文机械/语言模板化/空洞水文）",
+    // 阈值经 2026-10-17 标注集校准（13 样本）：
+    // human 密度 [0,0,0,4.27,4.69] / ai 密度 [29.96..107.01]
+    tell_warn: 6, tell_fail: 10,
+    focus: ["行文机械", "语言模板化", "空洞水文"],
+    strict: true,
+  },
+  qimao: {
+    label: "七猫小说",
+    policy: "2026-09-01《生成式AI服务管理办法》施行，要求标注AI辅助使用；人工编辑初审，开篇三章是生死线",
+    tell_warn: 6, tell_fail: 12,
+    focus: ["开篇 AI 味", "一眼模板化", "开场景描套路"],
+    opening_weight: true,
+    strict: false,
+  },
+  qidian: {
+    label: "起点中文网",
+    policy: "2026 AI 水文治理（清理榜单、限定日更）；'文学本身不能是AI'",
+    tell_warn: 6, tell_fail: 12,
+    focus: ["信息密度（水文）", "重复铺陈", "模板化灌水"],
+    shuiwen_check: true,
+    strict: false,
+  },
+};
+
+const PHRASE_SIGNALS = [
+  // [名称, 词表, 解释, 严重度]
+  ["A1 情绪直述",
+    ["感到无比", "充满恐惧", "涌起一阵", "内心充满", "非常愤怒",
+     "无比悲伤", "心头一暖", "心中一喜", "感到一阵"],
+    "直接贴情绪标签，剥夺读者'读出来'的乐趣", "high"],
+  ["A4 段尾升华",
+    ["命运的齿轮", "这只是一个开始", "终于明白", "而在远方",
+     "一切都将改变", "新的征程", "属于他的时代"],
+    "模型式安全收束，万能升华", "high"],
+  ["B2 程度副词",
+    ["极其", "无比", "深深地", "浓浓的", "简直", "仿佛要", "异常", "格外"],
+    "副词是省略细节的捷径", "medium"],
+  ["B3 比喻滥用",
+    ["仿佛", "宛如", "好似", "就像", "如同"],
+    "比喻是调味料不是主菜；连用即滥用", "medium"],
+  ["B5 宏大意象",
+    ["宿命", "轮回", "苍穹", "洪流", "深渊", "尘埃", "光年", "宇宙", "纪元"],
+    "与情节无关的宏大词，模型'显得深刻'的默认手段", "medium"],
+  ["E2 说明文腔",
+    ["值得注意的是", "综上所述", "不难看出", "由此可见",
+     "换句话说", "总而言之"],
+    "说明文/助手腔残留", "medium"],
+  ["F 高频词",
+    ["此外", "至关重要", "赋能", "闭环", "抓手", "彰显", "诠释",
+     "交织", "勾勒", "蜕变", "救赎", "觉醒", "张力"],
+    "中文 AI 高频词，扎堆出现才是信号", "low"],
+];
+
+const REGEX_SIGNALS = [
+  ["C3 对称句式",
+    ["不是.{1,12}而是", "与其说.{1,12}不如说", "既是.{1,10}也是"],
+    "否定的一半常是稻草人，只增重量不增信息", "high"],
+];
+
+function countOccurrences(text, word) {
+  let count = 0, idx = 0;
+  while ((idx = text.indexOf(word, idx)) !== -1) { count++; idx += word.length; }
+  return count;
+}
+
+function _hasParallelMarker(sents) {
+  // 排比的结构标记：三句中有≥2句共享结构特征。
+  // 真排比必有结构重复（共用虚词/相同领起/相同收尾）；纯等长短句（如对话"你来。/我去。"）不是排比。
+  if (sents.length < 3) return false;
+  const tri = sents.slice(0, 3);
+  // 1) ≥2 句首两字相同
+  const heads = tri.filter(s => s.length >= 2).map(s => s.slice(0, 2));
+  if (heads.length >= 2 && new Set(heads).size < heads.length) return true;
+  // 2) ≥2 句尾字相同
+  const tails = tri.filter(s => s).map(s => s.slice(-1));
+  if (tails.length >= 2 && new Set(tails).size < tails.length) return true;
+  // 3) 有二字词在≥2句中出现（含虚词——排比本就是结构的重复）
+  const seen = {};
+  for (const s of tri) {
+    const ws = new Set();
+    for (let i = 0; i < s.length - 1; i++) ws.add(s.slice(i, i + 2));
+    for (const w of ws) seen[w] = (seen[w] || 0) + 1;
+  }
+  return Object.values(seen).some(v => v >= 2);
+}
+
+function _cleanSentsForC2(sents) {
+  // C2 前清洗：去掉对话引号/空白碎片（否则 '"\n\n' 会被当成共享二字词造成误判），丢弃 <2 字的碎片句
+  const cleaned = [];
+  for (const s of sents) {
+    const c = s.replace(/[“”"「」『』\s]+/g, "");
+    if (c.length >= 2) cleaned.push(c);
+  }
+  return cleaned;
+}
+
+function detectParallelTriples(sentences) {
+  // C2 排比三连：连续 3 句短句、句长接近、且有结构平行标记
+  const hits = [];
+  const lens = sentences.map(s => s.length);
+  for (let i = 0; i <= sentences.length - 3; i++) {
+    const win = lens.slice(i, i + 3);
+    if (win.every(l => l <= 30) && Math.max(...win) - Math.min(...win) <= 6) {
+      if (_hasParallelMarker(sentences.slice(i, i + 3))) hits.push(i);
+    }
+  }
+  return hits;
+}
+
+function detectRepetition(paragraphs, minLen = 10) {
+  const seen = new Map();
+  const dups = [];
+  paragraphs.forEach((p, pi) => {
+    const clean = p.replace(/\s+/g, "");
+    for (let i = 0; i <= clean.length - minLen; i++) {
+      const frag = clean.slice(i, i + minLen);
+      if (seen.has(frag) && seen.get(frag) !== pi) dups.push(frag);
+      else if (!seen.has(frag)) seen.set(frag, pi);
+    }
+  });
+  const uniq = [];
+  for (const d of new Set(dups)) {
+    if (!uniq.some(u => u !== d && u.includes(d))) uniq.push(d);
+  }
+  return uniq.slice(0, 10);
+}
+
+const SENT_END = /[。！？…]/g;
+const CLAUSE_SPLIT = /[，；、]/;
+const DIALOGUE_RE = /[“"「『]([^“"」』]{1,200})[”"」』]/g;
+
+function splitDialogue(text) {
+  const dialogues = [...text.matchAll(DIALOGUE_RE)].map(m => m[1]);
+  const narration = text.replace(DIALOGUE_RE, "");
+  return { dialogues, narration };
+}
+
+function punctStats(t) {
+  const commas = (t.match(/[，,]/g) || []).length;
+  const periods = (t.match(SENT_END) || []).length || 1;
+  return Math.round((commas / periods) * 100) / 100;
+}
+
+function sentenceStats(t) {
+  const sents = t.split(/[。！？…]/).map(s => s.trim()).filter(Boolean);
+  const lens = sents.map(s => s.length);
+  if (!lens.length) return { n: 0, avg: 0, std: 0, sents: [] };
+  const mean = lens.reduce((a, b) => a + b, 0) / lens.length;
+  const variance = lens.reduce((a, b) => a + (b - mean) ** 2, 0) / lens.length;
+  return { n: sents.length, avg: Math.round(mean * 10) / 10,
+           std: Math.round(Math.sqrt(variance) * 10) / 10, sents };
+}
+
+function clauseStats(t) {
+  const clauses = t.split(CLAUSE_SPLIT).map(c => c.trim()).filter(Boolean);
+  if (!clauses.length) return { n: 0, avg: 0 };
+  const avg = clauses.reduce((a, c) => a + c.length, 0) / clauses.length;
+  return { n: clauses.length, avg: Math.round(avg * 10) / 10 };
+}
+
+function analyze(text, platform = null) {
+  text = text.trim();
+  // v0.3: 统一换行符（\r\n→\n），避免 \r 被计入字数导致双实现不一致
+  text = text.replace(/\r\n?/g, "\n");
+  // v0.3: 清洗 txt 分隔线杂质（整行分隔符会被 D5 误判为重复铺陈）
+  text = text.replace(/^[ \t]*[-=＊*·…─—―]{5,}[ \t]*\r?$/gm, "").trim();
+  const chars = text.length;
+  if (!chars) return { error: "empty text" };
+  const per1k = chars / 1000;
+
+  const { dialogues, narration } = splitDialogue(text);
+  const full = sentenceStats(text);
+
+  const result = {
+    chars, platform,
+    punct: {
+      full_comma_period: punctStats(text),
+      narration_comma_period: punctStats(narration),
+      dialogue_chars_ratio:
+        Math.round((dialogues.join("").length / chars) * 100) / 100,
+    },
+    sentence: { avg_len: full.avg, std: full.std, n: full.n },
+    clause: clauseStats(narration),
+  };
+
+  const signals = [];
+  let totalHits = 0;
+  for (const [cat, words, why, sev] of PHRASE_SIGNALS) {
+    const hits = words.map(w => [w, countOccurrences(text, w)]).filter(([, c]) => c > 0);
+    if (hits.length) {
+      const cnt = hits.reduce((a, [, c]) => a + c, 0);
+      totalHits += cnt;
+      signals.push({ signal: cat, hits: cnt, severity: sev,
+        density_per_1k: Math.round((cnt / per1k) * 100) / 100,
+        examples: hits.slice(0, 5).map(([w]) => w), why });
+    }
+  }
+  for (const [cat, patterns, why, sev] of REGEX_SIGNALS) {
+    const cnt = patterns.reduce(
+      (a, p) => a + (text.match(new RegExp(p, "g")) || []).length, 0);
+    if (cnt) {
+      totalHits += cnt;
+      signals.push({ signal: cat, hits: cnt, severity: sev,
+        density_per_1k: Math.round((cnt / per1k) * 100) / 100,
+        examples: [], why });
+    }
+  }
+  const triples = detectParallelTriples(_cleanSentsForC2(full.sents));
+  if (triples.length) {
+    signals.push({ signal: "C2 排比三连（启发式）", hits: triples.length, severity: "high",
+      density_per_1k: Math.round((triples.length / per1k) * 100) / 100,
+      examples: [], why: "连续三短句等长，'听起来完整'的默认做法" });
+    totalHits += triples.length;
+  }
+
+  result.signals = signals.sort((a, b) => b.hits - a.hits);
+  result.signal_density_per_1k = Math.round((totalHits / per1k) * 100) / 100;
+
+  // v0.3: 精修腔指标（针对"精 AI"，依据《烬天行》实测）
+  const sig = p => signals.find(s => s.signal.startsWith(p));
+  const _c2 = sig("C2"), _c3 = sig("C3"), _b3 = sig("B3"), _b5 = sig("B5");
+  const c2Dens = _c2 ? _c2.density_per_1k : 0;
+  // 精修腔规则只在高置信度档（≥800字）生效：短文本下"每千字密度"会被单次命中放大
+  const _long = chars >= 800;
+  const polishedC2 = _long && c2Dens >= 1.2;
+  const polishedCombo = _long && c2Dens >= 1.0 && _c3 && (_b3 || _b5);
+
+  const paragraphs = text.split("\n").map(p => p.trim()).filter(Boolean);
+  const dups = detectRepetition(paragraphs);
+  result.repetition = { count: dups.length, examples: dups };
+
+  const risks = [];
+  const cp = result.punct.narration_comma_period;
+  if (cp > 2.2) risks.push(`逗号÷句号比偏高（叙述层 ${cp}），长句堆砌嫌疑`);
+  if (full.std < 6 && full.n >= 6)
+    risks.push(`句长标准差偏低（${full.std}），节奏单一、模板化嫌疑`);
+  if (result.clause.avg && result.clause.avg < 8 && result.clause.n >= 10)
+    risks.push(`分句平均长度过短（${result.clause.avg} 字），逗号碎句嫌疑`);
+  if (dups.length) risks.push(`重复铺陈 ${dups.length} 处（D5），水文/记忆缺失嫌疑`);
+  if (polishedC2) risks.push(`C2 排比密度 ${c2Dens}/千字 ≥1.2，'精修腔'弱信号`);
+  if (polishedCombo) risks.push("精修腔组合（C2排比＋C3对称＋B3/B5修辞）命中，AI 润色嫌疑");
+  result.risks = risks;
+
+  if (platform && PLATFORM_PROFILES[platform]) {
+    const prof = PLATFORM_PROFILES[platform];
+    const dens = result.signal_density_per_1k;
+    let verdict = "pass";
+    const reasons = [];
+    if (dens >= prof.tell_fail) {
+      verdict = "fail";
+      reasons.push(`AI 腔信号密度 ${dens}/千字 ≥ ${prof.tell_fail}（${prof.label}）`);
+    } else if (dens >= prof.tell_warn) {
+      verdict = "review";
+      reasons.push(`AI 腔信号密度 ${dens}/千字，达预警线`);
+    }
+    if (result.repetition.count >= 3 && prof.shuiwen_check) {
+      if (verdict !== "fail") verdict = "review";
+      reasons.push(`重复铺陈 ${result.repetition.count} 处，起点水文治理高风险`);
+    }
+    const strong = signals.some(s => /^(A1|C2|C6)/.test(s.signal));
+    // 强信号一票预警：只在密度已达预警线时触发，避免单个轻微排比句就 review
+    if (prof.strict && strong && dens >= prof.tell_warn) {
+      reasons.push("番茄强信号命中（A1/C2/C6），'AI 粗制滥造'拒签风险");
+      if (verdict === "pass") verdict = "review";
+    }
+    // v0.3 精修腔：弱信号，只推 review、不推 fail，不单独定罪
+    if (verdict === "pass" && (polishedC2 || polishedCombo)) {
+      verdict = "review";
+      reasons.push(`精修腔信号（C2排比密度${c2Dens}/千字${polishedCombo ? "＋修辞组合" : ""}），建议人工复核`);
+    }
+    result.platform_verdict = {
+      platform: prof.label, policy: prof.policy, verdict,
+      reasons: reasons.length ? reasons : ["机械指标未触发平台红线"],
+      focus: prof.focus,
+    };
+  }
+
+  // 置信度：样本过短时"每千字密度"会被放大，不下重结论
+  let confidence, cap, note;
+  if (chars < 200) {
+    confidence = "low"; cap = "review";
+    note = "样本过短（<200字），结论置信度低，仅供参考；建议用至少前3章重测";
+  } else if (chars < 800) {
+    confidence = "medium"; cap = null;
+    note = "样本较短，结论置信度中等";
+  } else {
+    confidence = "high"; cap = null; note = "";
+  }
+  if (cap && platform && result.platform_verdict) {
+    const order = { pass: 0, review: 1, fail: 2 };
+    const pv = result.platform_verdict;
+    if (order[pv.verdict] > order[cap]) {
+      pv.verdict = cap;
+      pv.reasons.push(note);
+    }
+  }
+  result.confidence = { level: confidence, note };
+  return result;
+}
+
+const $ = (id) => document.getElementById(id);
+let selectedPlatform = "fanqie";
+
+const SEV_LABEL = { high: "高危", medium: "注意", low: "轻微" };
+const SEV_ORDER = { high: 0, medium: 1, low: 2 };
+
+/* ---------- 安全存储（iOS 附件预览等 file:// 沙盒下 localStorage 可能抛异常） ---------- */
+const safeStorage = (() => {
+  const mem = {};
+  try {
+    localStorage.setItem("__signcheck_probe", "1");
+    localStorage.removeItem("__signcheck_probe");
+    return {
+      get: (k) => localStorage.getItem(k),
+      set: (k, v) => localStorage.setItem(k, v),
+    };
+  } catch (e) {
+    return {
+      get: (k) => (k in mem ? mem[k] : null),
+      set: (k, v) => { mem[k] = String(v); },
+    };
+  }
+})();
+
+/* ---------- 主题 ---------- */
+function initTheme() {
+  const saved = safeStorage.get("signcheck_theme");
+  if (saved) document.documentElement.dataset.theme = saved;
+  $("themeToggle").onclick = () => {
+    const cur = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+    document.documentElement.dataset.theme = cur;
+    safeStorage.set("signcheck_theme", cur);
+  };
+}
+
+/* ---------- 平台选择 ---------- */
+function renderPlatformCards() {
+  const wrap = $("platformCards");
+  wrap.innerHTML = "";
+  for (const [id, p] of Object.entries(PLATFORMS)) {
+    const sevCls = p.ai_strictness.includes("最严") ? "s-high" : "s-mid";
+    const card = document.createElement("button");
+    card.className = "pcard" + (id === selectedPlatform ? " active" : "");
+    card.innerHTML = `
+      <div class="pcard-name">${p.name}</div>
+      <div class="pcard-tag">${p.tagline}</div>
+      <div class="pcard-ai">AI 审核 <span class="sev ${sevCls}">${p.ai_strictness}</span></div>
+      <div class="pcard-ver">策略卡 ${p.policy_version}</div>`;
+    card.onclick = () => {
+      selectedPlatform = id;
+      renderPlatformCards();
+      renderPolicyCard();
+      renderChecklist();
+    };
+    wrap.appendChild(card);
+  }
+}
+
+/* ---------- 平台策略卡 ---------- */
+function renderPolicyCard() {
+  const p = PLATFORMS[selectedPlatform];
+  $("policyCard").innerHTML = `
+    <div class="pol-head"><h3>${p.name}</h3><span class="ver">策略卡 ${p.policy_version} · ${p.effective_date} 生效</span></div>
+    <div class="ai-policy"><b>AI 政策：</b>${p.ai_policy}</div>
+    <p class="kv"><b>关键指标</b>${p.key_metrics.join("、")}</p>
+    <div class="cols">
+      <div><h4>签约流程</h4><ol>${p.signing.map(s => `<li>${s}</li>`).join("")}</ol></div>
+      <div><h4>收益结构</h4><ul>${p.welfare.map(s => `<li>${s}</li>`).join("")}</ul></div>
+    </div>
+    <p class="kv"><b>红线</b></p>
+    <div class="chips">${p.redlines.map(r => `<span class="chip danger">${r}</span>`).join("")}</div>
+    <p class="kv" style="margin-top:12px"><b>投稿材料包</b></p>
+    <div class="chips">${p.materials.map(m => `<span class="chip">${m}</span>`).join("")}</div>`;
+}
+
+/* ---------- 签约资格 checklist ---------- */
+function renderChecklist() {
+  const p = PLATFORMS[selectedPlatform];
+  $("checklist").innerHTML =
+    p.checklist.map((c, i) => `
+      <label class="check-item" data-i="${i}">
+        <input type="checkbox">
+        <span class="badge ${c.blocking ? "blocking" : "advisory"}">${c.blocking ? "硬性" : "建议"}</span>
+        <span>${c.text}</span>
+      </label>`).join("") +
+    `<button id="evalBtn" class="ghost">根据勾选出结论</button>
+     <div id="checkVerdict" class="check-verdict"></div>`;
+  document.querySelectorAll("#checklist .check-item input").forEach(box => {
+    box.addEventListener("change", () => box.closest(".check-item").classList.toggle("done", box.checked));
+  });
+  $("evalBtn").onclick = () => {
+    const boxes = [...document.querySelectorAll("#checklist input[type=checkbox]")];
+    const missing = p.checklist.filter((c, i) => c.blocking && !boxes[i].checked);
+    $("checkVerdict").innerHTML = !missing.length
+      ? `<span class="ok">✓ 硬性项全部达标，可以进入投稿流程</span>`
+      : `<span class="ng">✗ 还有 ${missing.length} 项硬性未达标：</span><ul>${missing.map(c => `<li>${c.text}</li>`).join("")}</ul>`;
+  };
+}
+
+/* ---------- 检测报告 ---------- */
+function metricClass(key, r) {
+  if (key === "cp" && r.punct.narration_comma_period > 2.2) return "bad";
+  if (key === "std" && r.sentence.std < 6 && r.sentence.n >= 6) return "warn";
+  if (key === "clause" && r.clause.avg && r.clause.avg < 8 && r.clause.n >= 10) return "warn";
+  if (key === "density") {
+    const v = r.platform_verdict;
+    if (v.verdict === "fail") return "bad";
+    if (v.verdict === "review") return "warn";
+  }
+  if (key === "dup" && r.repetition.count >= 3) return "bad";
+  if (key === "dup" && r.repetition.count > 0) return "warn";
+  return "";
+}
+
+function renderResult(r) {
+  const p = PLATFORMS[selectedPlatform];
+  const v = r.platform_verdict;
+  const vt = VERDICT_TEXT[v.verdict];
+  const icon = v.verdict === "pass" ? "✓" : v.verdict === "review" ? "!" : "✗";
+  const conf = r.confidence || { level: "high", note: "" };
+  const confLabel = { high: "置信度高", medium: "置信度中等", low: "置信度低" }[conf.level];
+
+  const sigs = [...r.signals].sort((a, b) =>
+    (SEV_ORDER[a.severity] - SEV_ORDER[b.severity]) || b.hits - a.hits);
+
+  $("result").innerHTML = `
+    <div class="verdict v-${v.verdict}">
+      <div class="v-icon">${icon}</div>
+      <div>
+        <div class="v-label">${vt.label} · ${p.name}</div>
+        <div class="v-hint">${vt.hint}</div>
+        <div class="v-policy">审核口径：${v.policy}</div>
+        ${conf.note ? `<div class="v-policy">⚠ ${confLabel}：${escapeHtml(conf.note)}</div>` : ""}
+        <ul class="v-reasons">${v.reasons.map(x => `<li>${x}</li>`).join("")}</ul>
+      </div>
+    </div>
+
+    <div class="sec-title">机械指标</div>
+    <div class="metric-grid">
+      <div class="metric"><div class="m-num">${r.chars}</div><div class="m-label">总字数</div></div>
+      <div class="metric"><div class="m-num ${metricClass("cp", r)}">${r.punct.narration_comma_period}</div><div class="m-label">逗号÷句号<br>叙述层</div></div>
+      <div class="metric"><div class="m-num ${metricClass("std", r)}">${r.sentence.std}</div><div class="m-label">句长标准差<br>越小越模板化</div></div>
+      <div class="metric"><div class="m-num ${metricClass("clause", r)}">${r.clause.avg}</div><div class="m-label">分句平均长度<br>过短=碎句</div></div>
+      <div class="metric"><div class="m-num ${metricClass("density", r)}">${r.signal_density_per_1k}</div><div class="m-label">AI 腔信号<br>/千字</div></div>
+      <div class="metric"><div class="m-num ${metricClass("dup", r)}">${r.repetition.count}</div><div class="m-label">重复铺陈<br>处</div></div>
+    </div>
+
+    <div class="sec-title">AI 腔信号明细（${r.signals.length} 类）</div>
+    ${sigs.length ? `<div class="sig-list">${sigs.map(s => `
+      <div class="sig-row sev-${s.severity}">
+        <span class="sev-pill sev-${s.severity}">${SEV_LABEL[s.severity]}</span>
+        <div class="sig-body">
+          <div class="sig-name">${s.signal}</div>
+          <div class="sig-why">${s.why}</div>
+          ${s.examples.length ? `<div class="sig-ex">${s.examples.slice(0, 4).map(e => `<code>${escapeHtml(e)}</code>`).join("")}</div>` : ""}
+        </div>
+        <div class="sig-stat"><b>${s.hits}</b>次 · ${s.density_per_1k}/千字</div>
+      </div>`).join("")}</div>`
+      : `<div class="empty-note">未命中 AI 腔信号</div>`}
+
+    <div class="sec-title">风险项</div>
+    ${r.risks.length ? `<ul class="risk-list">${r.risks.map(x => `<li>⚠ ${x}</li>`).join("")}</ul>`
+      : `<div class="empty-note">无机械风险项</div>`}
+
+    ${r.repetition.count ? `
+      <div class="sec-title">重复铺陈示例（D5）</div>
+      <ul class="dup-list">${r.repetition.examples.slice(0, 5).map(x => `<li><code>${escapeHtml(x)}</code></li>`).join("")}</ul>` : ""}
+
+    <div class="focus-box"><b>${p.name}检测重点：</b>${v.focus.join("、")}</div>
+    <p class="disclaimer">机械检测只做初筛；最终判定请结合 SKILL.md 五维人工复核（具体性 / 节奏 / 克制 / 信息密度 / 声音）。网文爽点套路、章末钩子是体裁约定，不是 AI 味。检测原理参考：词汇多样性、句长变异系数、困惑度、风格一致性等多维统计特征。</p>`;
+  $("result").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+$("detectBtn").onclick = () => {
+  const text = $("inputText").value;
+  if (text.trim().length < 50) { alert("正文太短（<50 字），请粘贴至少前 3 章。"); return; }
+  const r = analyze(text, selectedPlatform);
+  if (r.error) { alert("文本为空"); return; }
+  renderResult(r);
+};
+$("inputText").addEventListener("input", (e) => {
+  $("charCount").textContent = e.target.value.length + " 字";
+});
+
+/* ---------- BYOK：AI 深度复核 ---------- */
+const LS_KEY = "signcheck_byok";
+function loadBYOK() {
+  try { return JSON.parse(safeStorage.get(LS_KEY) || "{}"); } catch { return {}; }
+}
+function initBYOK() {
+  const saved = loadBYOK();
+  if (saved.key) $("apiKey").value = saved.key;
+  if (saved.endpoint) $("apiEndpoint").value = saved.endpoint;
+  $("saveKeyBtn").onclick = () => {
+    safeStorage.set(LS_KEY, JSON.stringify({
+      key: $("apiKey").value.trim(),
+      endpoint: $("apiEndpoint").value.trim() || "https://api.deepseek.com/v1",
+    }));
+    alert("Key 已保存在本机浏览器（localStorage），不会上传到任何服务器。");
+  };
+  $("deepBtn").onclick = deepReview;
+}
+
+const DEEP_PROMPT = (platformLabel, platformPolicy, text) => `你是网文平台的签约审核编辑，专职识别"精修 AI 文"——即经过精心提示词或人工润色、表面已无明显 AI 腔（无情绪直述、无程度副词堆砌、无高频词），但深层仍带机器写作指纹的投稿。
+
+## 任务
+对以下正文做五维"AI 嫌疑"评分。每维 0-10 分，分数越高越像 AI 写的。
+只输出 JSON（不要 Markdown，不要寒暄），格式如下：
+{"dimensions":[{"id":"D1","name":"叙事因果链","score":0,"evidence":["原文片段≤20字"],"reason":"一句话"},],"avg_score":0,"verdict":"pass","confidence":"高","counter":"一句话","summary":"两句话"}
+
+## 五维定义（每维只看本维的事，不串维）
+D1 叙事因果链：事件之间是真因果，还是"然后…然后…"的悬空推进？转折是否靠"忽然/就在这时/谁也没想到"硬拗？AI 的因果常是字面上通、细想经不起推敲的假因果。
+D2 人物动机一致性：人物行为是否符合其已建立的性格与目标？是否出现"剧情需要式"变脸？配角是否各有各的语气，还是同一个腔调？
+D3 细节的重量：细节是具体的、有质感的、删掉会影响理解的；还是"正确但无用"的好词堆砌——看似具体，删掉什么都不影响？AI 的细节常悬空：形容词很多，信息量很少。
+D4 语言肌肉记忆：作者有没有个人的语言癖好——爱用的句式、节奏怪癖、表达指纹？AI 的文风是"平均脸"：正确、流畅，但没有任何个人癖好。
+D5 信息密度与废笔：每千字是否推进了情节/人物/世界观？有没有"正确的废话"——读完不知道发生了什么，但字数涨了？
+
+## 判分铁律
+1. 网文体裁约定不是 AI 味：爽点套路、章末钩子、升级打怪、退婚流开局——都不扣分。
+2. 文学性修辞不是 AI 味：排比、比喻是真人作者也会用的武器，只看"为修辞而修辞"的空转。
+3. 每维打分必须配 evidence（原文片段，每条≤20字）+ reason；≥7 分必须 ≥2 条证据，没有证据不许打高分。
+4. 必须写 counter（一句话反方检验）：它也可能是真人写的，因为……。写不出有说服力的 counter，confidence 降一档。
+5. verdict 口径：avg≥7 且至少两维≥8 → fail；avg≥4 或任一维≥8 → review；其余 → pass。
+6. 短文本（<3000字）confidence 封顶"中"。
+
+## 目标平台
+${platformLabel}：${platformPolicy}
+
+## 正文（截取前 12000 字）
+${text.slice(0, 12000)}`;
+
+function parseDeepJSON(raw) {
+  // 兼容模型套 markdown 代码围栏的情况
+  const m = String(raw).match(/```(?:json)?\s*([\s\S]*?)```/);
+  const src = m ? m[1] : String(raw);
+  const start = src.indexOf("{");
+  const end = src.lastIndexOf("}");
+  if (start < 0 || end <= start) throw new Error("模型未返回 JSON");
+  return JSON.parse(src.slice(start, end + 1));
+}
+
+function renderDeepReport(r) {
+  const vColor = { pass: "var(--pass)", review: "var(--warn)", fail: "var(--fail)" }[r.verdict] || "var(--warn)";
+  const vText = { pass: "通过：不像 AI 写的", review: "存疑：建议人工复核", fail: "高危：像 AI 写的" }[r.verdict] || r.verdict;
+  const dims = (r.dimensions || []).map(d => {
+    const cls = d.score >= 7 ? "bad" : d.score >= 4 ? "warn" : "";
+    return `<div class="metric"><div class="m-num ${cls}">${d.score}<span style="font-size:12px">/10</span></div>
+      <div class="m-label">${escapeHtml(d.id)} ${escapeHtml(d.name)}</div>
+      <div class="m-desc">${escapeHtml(d.reason || "")}</div>
+      ${(d.evidence || []).map(e => `<div class="ev-chip">“${escapeHtml(e)}”</div>`).join("")}
+    </div>`;
+  }).join("");
+  return `<div class="sec-title">AI 深度复核（五维语义）</div>
+    <div class="verdict-banner" style="border-left:4px solid ${vColor}">
+      <strong style="color:${vColor}">${vText}</strong>
+      <span style="color:var(--muted)">　均分 ${r.avg_score}/10 · 置信度 ${escapeHtml(r.confidence || "中")}</span>
+      <div style="margin-top:6px">${escapeHtml(r.summary || "")}</div>
+    </div>
+    <div class="metric-grid deep-dims">${dims}</div>
+    <div class="counter">反方检验：${escapeHtml(r.counter || "（模型未给出）")}</div>
+    <p class="disclaimer">本次复核由你自备的 Key 发起，费用由你的模型账户承担；本站不存储正文与 Key。语义复核仍是启发式判断，结论仅供参考。</p>`;
+}
+
+async function deepReview() {
+  const saved = loadBYOK();
+  const key = $("apiKey").value.trim() || saved.key;
+  const endpoint = ($("apiEndpoint").value.trim() || saved.endpoint || "https://api.deepseek.com/v1").replace(/\/$/, "");
+  const text = $("inputText").value.trim();
+  if (!key) { alert("请先填写 API Key（Key 只存本机，不上传）。"); return; }
+  if (text.length < 50) { alert("请先粘贴正文。"); return; }
+  const btn = $("deepBtn");
+  btn.disabled = true; btn.textContent = "复核中…";
+  try {
+    const resp = await fetch(endpoint + "/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+      body: JSON.stringify({
+        model: $("apiModel").value.trim() || "deepseek-chat",
+        messages: [{ role: "user", content: DEEP_PROMPT(PLATFORMS[selectedPlatform].name, PLATFORMS[selectedPlatform].policy, text) }],
+        temperature: 0.3,
+      }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error?.message || ("HTTP " + resp.status));
+    const raw = data.choices[0].message.content;
+    try {
+      $("deepResult").innerHTML = renderDeepReport(parseDeepJSON(raw));
+    } catch {
+      $("deepResult").innerHTML = `<div class="sec-title">AI 深度复核（五维语义）</div><pre>${escapeHtml(raw)}</pre>
+        <p class="disclaimer">模型未按 JSON 格式返回，已显示原文；本次复核由你自备的 Key 发起，本站不存储正文与 Key。</p>`;
+    }
+  } catch (e) {
+    $("deepResult").innerHTML = `<div class="sec-title">AI 深度复核（五维）</div><p style="color:var(--fail)">调用失败：${escapeHtml(e.message)}</p>`;
+  } finally {
+    btn.disabled = false; btn.textContent = "AI 深度复核（五维）";
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/* ---------- 侧边导航 ---------- */
+function initStepNav() {
+  const links = [...document.querySelectorAll("#stepNav a")];
+  links.forEach(a => a.addEventListener("click", (e) => {
+    e.preventDefault();
+    document.getElementById(a.dataset.step).scrollIntoView({ behavior: "smooth" });
+  }));
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(en => {
+      if (en.isIntersecting) links.forEach(a => a.classList.toggle("active", a.dataset.step === en.target.id));
+    });
+  }, { rootMargin: "-30% 0px -60% 0px" });
+  document.querySelectorAll("section.panel").forEach(s => obs.observe(s));
+}
+
+/* ---------- init（每步独立容错，一步异常不连累其他） ---------- */
+function safeInit(name, fn) {
+  try { fn(); } catch (e) { console.error("[init] " + name + " failed:", e); }
+}
+safeInit("theme", initTheme);
+safeInit("platformCards", renderPlatformCards);
+safeInit("policyCard", renderPolicyCard);
+safeInit("checklist", renderChecklist);
+safeInit("byok", initBYOK);
+safeInit("stepNav", initStepNav);
+</script>
+</body>
+</html>
