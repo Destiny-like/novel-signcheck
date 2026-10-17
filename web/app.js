@@ -1,5 +1,8 @@
 import { analyze } from "./detector.js";
 import { PLATFORMS, VERDICT_TEXT } from "./data.js";
+import { renderPipeline, setNodeState, getNodeState, pipelineSummary } from "./nodes/pipeline.js";
+import { renderRewriteTips } from "./nodes/rewrite-suggest.js";
+import { policyWarnHtml, policyStatus } from "./nodes/policy.js";
 
 const $ = (id) => document.getElementById(id);
 let selectedPlatform = "fanqie";
@@ -54,9 +57,19 @@ function renderPlatformCards() {
       renderPlatformCards();
       renderPolicyCard();
       renderChecklist();
+      setNodeState("platform", "done");
+      refreshSummary();
     };
     wrap.appendChild(card);
   }
+}
+
+/* ---------- 管线总览 ---------- */
+function refreshSummary() {
+  const el = $("pipelineSummary");
+  if (!el) return;
+  const s = pipelineSummary();
+  el.innerHTML = `<span class="${s.ok ? "ok" : "ng"}">${s.ok ? "✓" : "✗"} ${s.msg}</span>`;
 }
 
 /* ---------- 平台策略卡 ---------- */
@@ -64,6 +77,7 @@ function renderPolicyCard() {
   const p = PLATFORMS[selectedPlatform];
   $("policyCard").innerHTML = `
     <div class="pol-head"><h3>${p.name}</h3><span class="ver">策略卡 ${p.policy_version} · ${p.effective_date} 生效</span></div>
+    ${policyWarnHtml(p)}
     <div class="ai-policy"><b>AI 政策：</b>${p.ai_policy}</div>
     <p class="kv"><b>关键指标</b>${p.key_metrics.join("、")}</p>
     <div class="cols">
@@ -97,6 +111,8 @@ function renderChecklist() {
     $("checkVerdict").innerHTML = !missing.length
       ? `<span class="ok">✓ 硬性项全部达标，可以进入投稿流程</span>`
       : `<span class="ng">✗ 还有 ${missing.length} 项硬性未达标：</span><ul>${missing.map(c => `<li>${c.text}</li>`).join("")}</ul>`;
+    setNodeState("checklist", !missing.length ? "done" : "warn");
+    refreshSummary();
   };
 }
 
@@ -174,12 +190,29 @@ function renderResult(r) {
   $("result").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-$("detectBtn").onclick = () => {
+function runDetection() {
   const text = $("inputText").value;
   if (text.trim().length < 50) { alert("正文太短（<50 字），请粘贴至少前 3 章。"); return; }
+  setNodeState("detect", "running");
   const r = analyze(text, selectedPlatform);
-  if (r.error) { alert("文本为空"); return; }
+  if (r.error) { alert("文本为空"); setNodeState("detect", "pending"); return; }
   renderResult(r);
+  // 节点状态：fail=需返工，review=预警，pass=通过
+  const v = r.platform_verdict.verdict;
+  setNodeState("detect", v === "fail" ? "blocked" : v === "review" ? "warn" : "done");
+  // S4 改写建议节点
+  $("rewriteBox").innerHTML = renderRewriteTips(r.signals, r.repetition.count);
+  const hasTips = r.signals.length > 0 || r.repetition.count > 0;
+  $("recheckBtn").disabled = false;
+  setNodeState("rewrite", hasTips ? "warn" : "done");
+  document.getElementById("step3b").scrollIntoView({ behavior: "smooth", block: "start" });
+  refreshSummary();
+}
+
+$("detectBtn").onclick = runDetection;
+$("recheckBtn").onclick = () => {
+  // 回炉：用修改后的正文重跑检测
+  runDetection();
 };
 $("inputText").addEventListener("input", (e) => {
   $("charCount").textContent = e.target.value.length + " 字";
@@ -279,7 +312,7 @@ async function deepReview() {
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
       body: JSON.stringify({
         model: $("apiModel").value.trim() || "deepseek-chat",
-        messages: [{ role: "user", content: DEEP_PROMPT(PLATFORMS[selectedPlatform].name, PLATFORMS[selectedPlatform].policy, text) }],
+        messages: [{ role: "user", content: DEEP_PROMPT(PLATFORMS[selectedPlatform].name, PLATFORMS[selectedPlatform].ai_policy, text) }],
         temperature: 0.3,
       }),
     });
@@ -287,15 +320,19 @@ async function deepReview() {
     if (!resp.ok) throw new Error(data.error?.message || ("HTTP " + resp.status));
     const raw = data.choices[0].message.content;
     try {
-      $("deepResult").innerHTML = renderDeepReport(parseDeepJSON(raw));
+      const parsed = parseDeepJSON(raw);
+      $("deepResult").innerHTML = renderDeepReport(parsed);
+      setNodeState("deep", parsed.verdict === "fail" ? "blocked" : parsed.verdict === "review" ? "warn" : "done");
     } catch {
       $("deepResult").innerHTML = `<div class="sec-title">AI 深度复核（五维语义）</div><pre>${escapeHtml(raw)}</pre>
         <p class="disclaimer">模型未按 JSON 格式返回，已显示原文；本次复核由你自备的 Key 发起，本站不存储正文与 Key。</p>`;
     }
   } catch (e) {
     $("deepResult").innerHTML = `<div class="sec-title">AI 深度复核（五维）</div><p style="color:var(--fail)">调用失败：${escapeHtml(e.message)}</p>`;
+    setNodeState("deep", "blocked");
   } finally {
     btn.disabled = false; btn.textContent = "AI 深度复核（五维）";
+    refreshSummary();
   }
 }
 
@@ -322,9 +359,17 @@ function initStepNav() {
 function safeInit(name, fn) {
   try { fn(); } catch (e) { console.error("[init] " + name + " failed:", e); }
 }
+function initPipeline() {
+  renderPipeline();
+  setNodeState("platform", "done");
+  const st = policyStatus(PLATFORMS[selectedPlatform]);
+  setNodeState("policy", st.level === "expired" ? "warn" : "done");
+  refreshSummary();
+}
 safeInit("theme", initTheme);
 safeInit("platformCards", renderPlatformCards);
 safeInit("policyCard", renderPolicyCard);
 safeInit("checklist", renderChecklist);
 safeInit("byok", initBYOK);
 safeInit("stepNav", initStepNav);
+safeInit("pipeline", initPipeline);

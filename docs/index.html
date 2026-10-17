@@ -311,6 +311,51 @@ footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top
   .sig-row { flex-wrap: wrap; }
 }
 
+/* ---------- Phase 2a · 过签管线 ---------- */
+.pipeline { display: flex; align-items: stretch; gap: 0; overflow-x: auto; padding: 4px 2px; }
+.pl-node {
+  flex: 1 1 0; min-width: 96px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 6px; cursor: pointer; color: var(--text); font: inherit;
+}
+.pl-node:hover { border-color: var(--accent); }
+.pl-link { align-self: center; flex: 0 0 14px; height: 2px; background: var(--border); }
+.pl-dot {
+  width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; background: var(--surface-3); color: var(--text-3);
+}
+.pl-title { font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pl-title em { font-style: normal; font-size: 10px; color: var(--text-3); }
+.pl-state { font-size: 11px; color: var(--text-3); }
+.pl-node.st-done .pl-dot { background: var(--pass-bg); color: var(--pass); }
+.pl-node.st-done .pl-state { color: var(--pass); }
+.pl-node.st-running .pl-dot { background: var(--review-bg); color: var(--review); animation: plpulse 1s infinite; }
+.pl-node.st-warn .pl-dot { background: var(--review-bg); color: var(--review); }
+.pl-node.st-warn .pl-state { color: var(--review); }
+.pl-node.st-blocked { border-color: var(--fail); }
+.pl-node.st-blocked .pl-dot { background: var(--fail-bg); color: var(--fail); }
+.pl-node.st-blocked .pl-state { color: var(--fail); }
+@keyframes plpulse { 50% { opacity: .5; } }
+.pl-summary { margin-top: 10px; font-size: 14px; }
+.pl-summary .ok { color: var(--pass); } .pl-summary .ng { color: var(--text-2); }
+
+/* ---------- Phase 2a · 改写建议 ---------- */
+.rw-list { display: flex; flex-direction: column; gap: 10px; }
+.rw-card { background: var(--surface-2); border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.rw-card.sev-high { border-left-color: var(--fail); }
+.rw-card.sev-medium { border-left-color: var(--review); }
+.rw-card.sev-low { border-left-color: var(--text-3); }
+.rw-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.rw-head b { font-size: 14px; }
+.rw-hits { margin-left: auto; font-size: 12px; color: var(--text-3); }
+.rw-card ol { margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-2); display: flex; flex-direction: column; gap: 4px; }
+.rw-note { font-size: 13px; color: var(--text-3); margin-top: 10px; }
+
+/* ---------- Phase 2a · 策略卡过期预警 ---------- */
+.pol-warn { border-radius: 8px; padding: 8px 12px; font-size: 13px; margin: 10px 0; }
+.pol-warn.expired { background: var(--fail-bg); color: var(--fail); border: 1px solid var(--fail); }
+.pol-warn.aging { background: var(--review-bg); color: var(--review); border: 1px solid var(--review); }
+
 </style>
 </head>
 <body>
@@ -322,7 +367,7 @@ footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top
       <div class="brand-name">签约前自查</div>
       <div class="brand-sub">网文投稿模拟考</div>
     </div>
-    <span class="ver-badge">v0.4</span>
+    <span class="ver-badge">v0.5</span>
   </div>
   <div class="topbar-right">
     <span class="policy-mini">番茄 v2026.10.12 · 七猫 v2026.10.16 · 起点 v2026.10.16</span>
@@ -336,8 +381,9 @@ footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top
       <a href="#step1" data-step="step1"><span class="n">1</span><span class="t"><b>选择平台</b><i>三平台审核口径不同</i></span></a>
       <a href="#step2" data-step="step2"><span class="n">2</span><span class="t"><b>平台策略卡</b><i>签约流程·收益·红线</i></span></a>
       <a href="#step3" data-step="step3"><span class="n">3</span><span class="t"><b>粘贴检测</b><i>AI 味机械初筛</i></span></a>
-      <a href="#step4" data-step="step4"><span class="n">4</span><span class="t"><b>资格自查</b><i>硬性门槛核对</i></span></a>
-      <a href="#step5" data-step="step5"><span class="n">5</span><span class="t"><b>深度复核</b><i>BYOK · 五维评分</i></span></a>
+      <a href="#step3b" data-step="step3b"><span class="n">4</span><span class="t"><b>改写建议</b><i>按信号定向返工</i></span></a>
+      <a href="#step4" data-step="step4"><span class="n">5</span><span class="t"><b>资格自查</b><i>硬性门槛核对</i></span></a>
+      <a href="#step5" data-step="step5"><span class="n">6</span><span class="t"><b>深度复核</b><i>BYOK · 五维评分</i></span></a>
     </nav>
     <div class="side-foot">
       <div class="side-foot-title">检测说明</div>
@@ -346,6 +392,12 @@ footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top
   </aside>
 
   <main>
+    <section class="panel" id="pipelinePanel">
+      <div class="panel-head"><h2>过签管线</h2><span class="panel-desc">节点式流程：每个节点可单独重跑，点击节点跳转</span></div>
+      <div id="pipelineSteps" class="pipeline"></div>
+      <div id="pipelineSummary" class="pl-summary"></div>
+    </section>
+
     <section class="panel" id="step1">
       <div class="panel-head"><h2>选择目标平台</h2><span class="panel-desc">番茄签约前拒签"AI 粗制滥造"（最严）· 七猫人工编辑看开篇+AI 标注 · 起点治理"水文"</span></div>
       <div id="platformCards" class="pcards"></div>
@@ -364,6 +416,14 @@ footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top
         <button id="detectBtn" class="primary">开始检测</button>
       </div>
       <div id="result"></div>
+    </section>
+
+    <section class="panel" id="step3b">
+      <div class="panel-head"><h2>改写建议</h2><span class="panel-desc">针对命中的信号给改写方向，不替你改（保留人工痕迹）</span></div>
+      <div id="rewriteBox"><div class="empty-note">先跑一次「开始检测」，这里会按信号给出定向改写建议</div></div>
+      <div class="action-row" style="margin-top:12px">
+        <button id="recheckBtn" class="primary" disabled>修改后复检（回炉）</button>
+      </div>
     </section>
 
     <section class="panel" id="step4">
@@ -386,7 +446,7 @@ footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top
     </section>
 
     <footer>
-      signcheck-novel-zh v0.2 · 策略卡带版本号，过期 90 天未更新会预警 · 知乎盐选 v0.3 补齐
+      signcheck-novel-zh v0.5 · 过签管线（Phase 2a）· 策略卡带版本号，过期 90 天未更新会预警
     </footer>
   </main>
 </div>
@@ -805,6 +865,223 @@ function analyze(text, platform = null) {
   return result;
 }
 
+/* Phase 2a：节点式过签管线
+ * 借鉴 DeterminFlow"让概率性的 AI 运行在确定的流程中"——
+ * 把单次检测升级为节点管线：每个节点有明确状态（待运行/运行中/通过/预警/需返工），
+ * 可单独重跑；blocking 节点不通过，管线拒绝给出"可投稿"结论。
+ *
+ * 节点映射（v1 设计 S0–S6 的 Web 落点）：
+ *   N0 平台选择   ← S0（平台定位）
+ *   N1 策略确认   ← S0（读策略卡，过期预警）
+ *   N2 机械检测   ← S3 质量门禁（机械层）
+ *   N3 改写建议   ← S4 去味改写（规则级建议 + 复检回炉）
+ *   N4 资格自查   ← S5 过审检查（checklist 硬门禁）
+ *   N5 深度复核   ← S3 质量门禁（语义层，BYOK，可选）
+ */
+
+const NODES = [
+  { id: "platform",  title: "选择平台", section: "step1", optional: false },
+  { id: "policy",    title: "策略确认", section: "step2", optional: false },
+  { id: "detect",    title: "机械检测", section: "step3", optional: false },
+  { id: "rewrite",   title: "改写建议", section: "step3b", optional: false },
+  { id: "checklist", title: "资格自查", section: "step4", optional: false },
+  { id: "deep",      title: "深度复核", section: "step5", optional: true },
+];
+
+// state: pending | running | done | warn | blocked
+const states = {};
+NODES.forEach(n => { states[n.id] = "pending"; });
+
+const STATE_LABEL = {
+  pending: "待运行", running: "运行中…", done: "通过",
+  warn: "预警", blocked: "需返工",
+};
+
+function getNodeState(id) { return states[id] || "pending"; }
+
+function setNodeState(id, state) {
+  if (!(id in states)) return;
+  states[id] = state;
+  renderPipeline();
+}
+
+function renderPipeline() {
+  const wrap = document.getElementById("pipelineSteps");
+  if (!wrap) return;
+  wrap.innerHTML = NODES.map((n, i) => {
+    const st = states[n.id];
+    const link = i < NODES.length - 1 ? '<span class="pl-link"></span>' : "";
+    return `<button class="pl-node st-${st}" data-node="${n.id}" data-section="${n.section}" title="${n.title}${n.optional ? "（可选）" : ""}">
+        <span class="pl-dot">${st === "done" ? "✓" : st === "blocked" ? "!" : (i + 1)}</span>
+        <span class="pl-title">${n.title}${n.optional ? "<em>可选</em>" : ""}</span>
+        <span class="pl-state">${STATE_LABEL[st]}</span>
+      </button>${link}`;
+  }).join("");
+  wrap.querySelectorAll(".pl-node").forEach(b => b.addEventListener("click", () => {
+    const sec = document.getElementById(b.dataset.section);
+    if (sec) sec.scrollIntoView({ behavior: "smooth" });
+  }));
+}
+
+/* 管线总览：是否允许给出"可投稿"结论 */
+function pipelineSummary() {
+  const required = NODES.filter(n => !n.optional);
+  const blocked = required.filter(n => states[n.id] === "blocked");
+  const pending = required.filter(n => states[n.id] === "pending" || states[n.id] === "running");
+  if (blocked.length) return { ok: false, msg: `还有 ${blocked.length} 个节点需返工：${blocked.map(n => n.title).join("、")}` };
+  if (pending.length) return { ok: false, msg: `还有 ${pending.length} 个节点未完成：${pending.map(n => n.title).join("、")}` };
+  const warned = required.filter(n => states[n.id] === "warn");
+  return { ok: true, msg: warned.length ? `全部完成，有 ${warned.length} 处预警（${warned.map(n => n.title).join("、")}），建议处理后再投稿` : "全部节点通过，可以进入投稿流程" };
+}
+
+/* Phase 2a · 规则库版本化
+ * 每张平台策略卡带 policy_version + effective_date；
+ * effective_date 距今超过 90 天 → 过期预警（v1 设计的政策生命线）。
+ */
+
+const POLICY_TTL_DAYS = 90;
+
+function policyAgeDays(platform) {
+  const d = new Date(platform.effective_date + "T00:00:00");
+  if (isNaN(d)) return 0;
+  return Math.floor((Date.now() - d.getTime()) / 86400000);
+}
+
+function policyStatus(platform) {
+  const age = policyAgeDays(platform);
+  if (age > POLICY_TTL_DAYS) return { level: "expired", age };
+  if (age > POLICY_TTL_DAYS - 30) return { level: "aging", age };
+  return { level: "ok", age };
+}
+
+function policyWarnHtml(platform) {
+  const st = policyStatus(platform);
+  if (st.level === "ok") return "";
+  if (st.level === "expired") {
+    return `<div class="pol-warn expired">⚠ 该策略卡已 ${st.age} 天未更新（超过 90 天有效期），签约前请以平台官方最新公告为准</div>`;
+  }
+  return `<div class="pol-warn aging">⏳ 该策略卡已 ${st.age} 天未更新，距 90 天有效期不足 30 天</div>`;
+}
+
+/* Phase 2a · S4 改写建议节点
+ * 规则级改写建议：针对每个命中的 AI 腔信号类别，给出具体、可执行的改写方向。
+ * 不替用户改写（保留人工痕迹），改完可一键复检（回炉 N2）。
+ */
+
+const TIPS = [
+  {
+    match: s => s.signal.startsWith("A1"),
+    title: "情绪直述 → 用动作代替标签",
+    tips: [
+      "删掉「感到一阵」「内心充满」「不由得」这类情绪标签词",
+      "用动作、神态、细节让读者自己读出情绪，不要直接报情绪名",
+      "同一处情绪只写一次，删掉重复渲染的句子",
+    ],
+  },
+  {
+    match: s => s.signal.startsWith("A4"),
+    title: "段尾升华 → 用具体收束",
+    tips: [
+      "删掉「命运的齿轮开始转动」「这只是一个开始」类万能升华句",
+      "用具体动作或细节收束段落，把悬念留给情节本身",
+      "升华句留到卷末/书末再用，全书不超过 3 次",
+    ],
+  },
+  {
+    match: s => s.signal.startsWith("B2"),
+    title: "程度副词 → 换成事实",
+    tips: [
+      "删掉「非常」「极其」「十分」「格外」等程度副词",
+      "换成具体数字、对比或事实（不说「非常快」，说「三息追上」）",
+    ],
+  },
+  {
+    match: s => s.signal.startsWith("B3"),
+    title: "比喻滥用 → 只留最准的一个",
+    tips: [
+      "删掉为比喻而比喻的句子：比喻没有推进理解就删",
+      "一个场景只留一个最准的比喻，其余全删",
+    ],
+  },
+  {
+    match: s => s.signal.startsWith("B5"),
+    title: "宏大意象 → 收缩尺度",
+    tips: [
+      "把「天地」「苍穹」「命运」收缩到具体的人和物",
+      "宏大词留给真正的转折点，日常章节禁用",
+    ],
+  },
+  {
+    match: s => s.signal.startsWith("C2"),
+    title: "排比三连 → 打散句式",
+    tips: [
+      "打散连续三短句的等长排比，长短错开",
+      "删掉纯粹为凑排比而存在的句子",
+    ],
+  },
+  {
+    match: s => s.signal.startsWith("C3"),
+    title: "对称句式 → 换自然叙述",
+    tips: [
+      "打破「不是……而是……」「与其……不如……」的对称模板",
+      "换成自然叙述语序，允许句子不对称",
+    ],
+  },
+  {
+    match: s => s.signal.startsWith("E2"),
+    title: "说明文腔 → 故事化表达",
+    tips: [
+      "删掉「首先/其次/总而言之」和教科书式定义句",
+      "设定交代融进情节和对话，不要整段说明书",
+    ],
+  },
+];
+
+/* D5 重复铺陈是独立字段，不在 signals 里 */
+function dupTip(count) {
+  if (!count) return null;
+  return {
+    title: `重复铺陈（${count} 处）→ 一处讲清`,
+    tips: [
+      "合并重复交代同一设定的段落，一处讲清",
+      "每写一段设定，回头检查「前面是不是说过」",
+      "起点重点查水文：重复铺陈 ≥3 处直接判高风险",
+    ],
+  };
+}
+
+function tipsForSignals(signals, repetitionCount) {
+  const out = [];
+  for (const s of signals) {
+    const rule = TIPS.find(t => t.match(s));
+    if (rule && !out.some(o => o.title === rule.title)) {
+      out.push({ ...rule, hits: s.hits, severity: s.severity });
+    }
+  }
+  const d = dupTip(repetitionCount);
+  if (d) out.push({ ...d, hits: repetitionCount, severity: repetitionCount >= 3 ? "high" : "medium" });
+  return out;
+}
+
+const SEV_TXT = { high: "高危", medium: "注意", low: "轻微" };
+
+function renderRewriteTips(signals, repetitionCount) {
+  const tips = tipsForSignals(signals, repetitionCount);
+  if (!tips.length) {
+    return `<div class="empty-note">未命中 AI 腔信号，无需改写，直接去资格自查吧 ✓</div>`;
+  }
+  return `<div class="rw-list">${tips.map(t => `
+    <div class="rw-card sev-${t.severity}">
+      <div class="rw-head">
+        <span class="sev-pill sev-${t.severity}">${SEV_TXT[t.severity] || ""}</span>
+        <b>${t.title}</b>
+        <span class="rw-hits">${t.hits} 处</span>
+      </div>
+      <ol>${t.tips.map(x => `<li>${x}</li>`).join("")}</ol>
+    </div>`).join("")}</div>
+  <p class="rw-note">按建议改完后，在上方正文框修改文本，点「修改后复检」回炉重测；也可以直接用 BYOK 让模型按这些方向改写（Key 只走你的模型账户）。</p>`;
+}
+
 const $ = (id) => document.getElementById(id);
 let selectedPlatform = "fanqie";
 
@@ -858,9 +1135,19 @@ function renderPlatformCards() {
       renderPlatformCards();
       renderPolicyCard();
       renderChecklist();
+      setNodeState("platform", "done");
+      refreshSummary();
     };
     wrap.appendChild(card);
   }
+}
+
+/* ---------- 管线总览 ---------- */
+function refreshSummary() {
+  const el = $("pipelineSummary");
+  if (!el) return;
+  const s = pipelineSummary();
+  el.innerHTML = `<span class="${s.ok ? "ok" : "ng"}">${s.ok ? "✓" : "✗"} ${s.msg}</span>`;
 }
 
 /* ---------- 平台策略卡 ---------- */
@@ -868,6 +1155,7 @@ function renderPolicyCard() {
   const p = PLATFORMS[selectedPlatform];
   $("policyCard").innerHTML = `
     <div class="pol-head"><h3>${p.name}</h3><span class="ver">策略卡 ${p.policy_version} · ${p.effective_date} 生效</span></div>
+    ${policyWarnHtml(p)}
     <div class="ai-policy"><b>AI 政策：</b>${p.ai_policy}</div>
     <p class="kv"><b>关键指标</b>${p.key_metrics.join("、")}</p>
     <div class="cols">
@@ -901,6 +1189,8 @@ function renderChecklist() {
     $("checkVerdict").innerHTML = !missing.length
       ? `<span class="ok">✓ 硬性项全部达标，可以进入投稿流程</span>`
       : `<span class="ng">✗ 还有 ${missing.length} 项硬性未达标：</span><ul>${missing.map(c => `<li>${c.text}</li>`).join("")}</ul>`;
+    setNodeState("checklist", !missing.length ? "done" : "warn");
+    refreshSummary();
   };
 }
 
@@ -978,12 +1268,29 @@ function renderResult(r) {
   $("result").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-$("detectBtn").onclick = () => {
+function runDetection() {
   const text = $("inputText").value;
   if (text.trim().length < 50) { alert("正文太短（<50 字），请粘贴至少前 3 章。"); return; }
+  setNodeState("detect", "running");
   const r = analyze(text, selectedPlatform);
-  if (r.error) { alert("文本为空"); return; }
+  if (r.error) { alert("文本为空"); setNodeState("detect", "pending"); return; }
   renderResult(r);
+  // 节点状态：fail=需返工，review=预警，pass=通过
+  const v = r.platform_verdict.verdict;
+  setNodeState("detect", v === "fail" ? "blocked" : v === "review" ? "warn" : "done");
+  // S4 改写建议节点
+  $("rewriteBox").innerHTML = renderRewriteTips(r.signals, r.repetition.count);
+  const hasTips = r.signals.length > 0 || r.repetition.count > 0;
+  $("recheckBtn").disabled = false;
+  setNodeState("rewrite", hasTips ? "warn" : "done");
+  document.getElementById("step3b").scrollIntoView({ behavior: "smooth", block: "start" });
+  refreshSummary();
+}
+
+$("detectBtn").onclick = runDetection;
+$("recheckBtn").onclick = () => {
+  // 回炉：用修改后的正文重跑检测
+  runDetection();
 };
 $("inputText").addEventListener("input", (e) => {
   $("charCount").textContent = e.target.value.length + " 字";
@@ -1083,7 +1390,7 @@ async function deepReview() {
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
       body: JSON.stringify({
         model: $("apiModel").value.trim() || "deepseek-chat",
-        messages: [{ role: "user", content: DEEP_PROMPT(PLATFORMS[selectedPlatform].name, PLATFORMS[selectedPlatform].policy, text) }],
+        messages: [{ role: "user", content: DEEP_PROMPT(PLATFORMS[selectedPlatform].name, PLATFORMS[selectedPlatform].ai_policy, text) }],
         temperature: 0.3,
       }),
     });
@@ -1091,15 +1398,19 @@ async function deepReview() {
     if (!resp.ok) throw new Error(data.error?.message || ("HTTP " + resp.status));
     const raw = data.choices[0].message.content;
     try {
-      $("deepResult").innerHTML = renderDeepReport(parseDeepJSON(raw));
+      const parsed = parseDeepJSON(raw);
+      $("deepResult").innerHTML = renderDeepReport(parsed);
+      setNodeState("deep", parsed.verdict === "fail" ? "blocked" : parsed.verdict === "review" ? "warn" : "done");
     } catch {
       $("deepResult").innerHTML = `<div class="sec-title">AI 深度复核（五维语义）</div><pre>${escapeHtml(raw)}</pre>
         <p class="disclaimer">模型未按 JSON 格式返回，已显示原文；本次复核由你自备的 Key 发起，本站不存储正文与 Key。</p>`;
     }
   } catch (e) {
     $("deepResult").innerHTML = `<div class="sec-title">AI 深度复核（五维）</div><p style="color:var(--fail)">调用失败：${escapeHtml(e.message)}</p>`;
+    setNodeState("deep", "blocked");
   } finally {
     btn.disabled = false; btn.textContent = "AI 深度复核（五维）";
+    refreshSummary();
   }
 }
 
@@ -1126,12 +1437,20 @@ function initStepNav() {
 function safeInit(name, fn) {
   try { fn(); } catch (e) { console.error("[init] " + name + " failed:", e); }
 }
+function initPipeline() {
+  renderPipeline();
+  setNodeState("platform", "done");
+  const st = policyStatus(PLATFORMS[selectedPlatform]);
+  setNodeState("policy", st.level === "expired" ? "warn" : "done");
+  refreshSummary();
+}
 safeInit("theme", initTheme);
 safeInit("platformCards", renderPlatformCards);
 safeInit("policyCard", renderPolicyCard);
 safeInit("checklist", renderChecklist);
 safeInit("byok", initBYOK);
 safeInit("stepNav", initStepNav);
+safeInit("pipeline", initPipeline);
 </script>
 </body>
 </html>
