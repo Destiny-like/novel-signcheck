@@ -356,6 +356,9 @@ footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top
 .pol-warn.expired { background: var(--fail-bg); color: var(--fail); border: 1px solid var(--fail); }
 .pol-warn.aging { background: var(--review-bg); color: var(--review); border: 1px solid var(--review); }
 
+/* ---------- 策略卡来源标注 ---------- */
+.pol-src { font-size: 12px; color: var(--text-3); margin: 8px 0; padding: 6px 10px; background: var(--surface-2); border-radius: 6px; }
+
 </style>
 </head>
 <body>
@@ -464,6 +467,7 @@ const PLATFORMS = {
     name: "番茄小说",
     policy_version: "v2026.10.12",
     effective_date: "2026-10-12",
+    source_note: "签约规则经官方通知的媒体报道核验；收益数字待官方核验",
     tagline: "字节系免费平台，流量最大，算法推荐",
     ai_policy: "签约前拒签“AI 粗制滥造”（行文机械/语言模板化/空洞水文）",
     ai_strictness: "最严",
@@ -493,10 +497,11 @@ const PLATFORMS = {
   qimao: {
     id: "qimao",
     name: "七猫小说",
-    policy_version: "v2026.10.16",
+    policy_version: "v2026.10.18",
     effective_date: "2026-10-16",
+    source_note: "⚠️ 本卡整理自第三方资料，待官方核验（2026-10-18 核验：法规口径证伪已修正）",
     tagline: "免费平台，编辑内投制，新人友好",
-    ai_policy: "2026-09-01《生成式AI服务管理办法》施行，七猫要求作者标注AI辅助使用情况；人工编辑初审，开篇三章是生死线",
+    ai_policy: "人工编辑初审，开篇三章是生死线；AI 辅助写作建议人工审改",
     ai_strictness: "严（开篇+标注）",
     key_metrics: ["完读率"],
     signing: [
@@ -524,6 +529,7 @@ const PLATFORMS = {
     name: "起点中文网",
     policy_version: "v2026.10.16",
     effective_date: "2026-10-16",
+    source_note: "AI 政策经官方报道核验；签约门槛与收益数字待官方核验",
     tagline: "阅文旗下，男频龙头，付费订阅制",
     ai_policy: "2026 AI 水文治理（清理榜单、限定日更）；“文学本身不能是AI”",
     ai_strictness: "中（上架后治理）",
@@ -573,7 +579,7 @@ const PLATFORM_PROFILES = {
   },
   qimao: {
     label: "七猫小说",
-    policy: "2026-09-01《生成式AI服务管理办法》施行，要求标注AI辅助使用；人工编辑初审，开篇三章是生死线",
+    policy: "人工编辑初审，开篇三章是生死线；AI 辅助写作建议人工审改",
     tell_warn: 6, tell_fail: 12,
     focus: ["开篇 AI 味", "一眼模板化", "开场景描套路"],
     opening_weight: true,
@@ -1155,6 +1161,7 @@ function renderPolicyCard() {
   const p = PLATFORMS[selectedPlatform];
   $("policyCard").innerHTML = `
     <div class="pol-head"><h3>${p.name}</h3><span class="ver">策略卡 ${p.policy_version} · ${p.effective_date} 生效</span></div>
+    ${p.source_note ? `<div class="pol-src">${p.source_note}</div>` : ""}
     ${policyWarnHtml(p)}
     <div class="ai-policy"><b>AI 政策：</b>${p.ai_policy}</div>
     <p class="kv"><b>关键指标</b>${p.key_metrics.join("、")}</p>

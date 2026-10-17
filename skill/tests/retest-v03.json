@@ -1,0 +1,110 @@
+[
+ {
+  "file": "ai_ceo.txt",
+  "fanqie": "fail",
+  "qimao": "fail",
+  "qidian": "fail"
+ },
+ {
+  "file": "ai_explain.txt",
+  "fanqie": "fail",
+  "qimao": "fail",
+  "qidian": "fail"
+ },
+ {
+  "file": "ai_mixed.txt",
+  "fanqie": "fail",
+  "qimao": "fail",
+  "qidian": "fail"
+ },
+ {
+  "file": "ai_parallel.txt",
+  "fanqie": "fail",
+  "qimao": "fail",
+  "qidian": "fail"
+ },
+ {
+  "file": "ai_xianxia.txt",
+  "fanqie": "fail",
+  "qimao": "fail",
+  "qidian": "fail"
+ },
+ {
+  "file": "human_comedy.txt",
+  "fanqie": "pass",
+  "qimao": "pass",
+  "qidian": "pass"
+ },
+ {
+  "file": "human_daily.txt",
+  "fanqie": "pass",
+  "qimao": "pass",
+  "qidian": "pass"
+ },
+ {
+  "file": "human_suspense.txt",
+  "fanqie": "pass",
+  "qimao": "pass",
+  "qidian": "pass"
+ },
+ {
+  "file": "human_urban.txt",
+  "fanqie": "pass",
+  "qimao": "pass",
+  "qidian": "pass"
+ },
+ {
+  "file": "human_xianxia.txt",
+  "fanqie": "pass",
+  "qimao": "pass",
+  "qidian": "pass"
+ },
+ {
+  "file": "rev_ceo.txt",
+  "fanqie": "pass",
+  "qimao": "pass",
+  "qidian": "pass"
+ },
+ {
+  "file": "rev_parallel.txt",
+  "fanqie": "pass",
+  "qimao": "pass",
+  "qidian": "pass"
+ },
+ {
+  "file": "rev_xianxia.txt",
+  "fanqie": "pass",
+  "qimao": "pass",
+  "qidian": "pass"
+ },
+ {
+  "file": "aq_zhengzhuan.txt",
+  "fanqie": "pass",
+  "qimao": "pass",
+  "qidian": "review"
+ },
+ {
+  "file": "book5_ch1-30.txt",
+  "fanqie": "review",
+  "qimao": "review",
+  "qidian": "review"
+ },
+ {
+  "file": "changshengjie_ch1-30.txt",
+  "fanqie": "pass",
+  "qimao": "pass",
+  "qidian": "review"
+ },
+ {
+  "file": "doupocangqiong_ch1-30.txt",
+  "fanqie": "pass",
+  "qimao": "pass",
+  "qidian": "review"
+ },
+ {
+  "file": "jiuyan_ch1-30.txt",
+  "fanqie": "pass",
+  "qimao": "pass",
+  "qidian": "review"
+ }
+]

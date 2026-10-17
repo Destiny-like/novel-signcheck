@@ -77,6 +77,7 @@ function renderPolicyCard() {
   const p = PLATFORMS[selectedPlatform];
   $("policyCard").innerHTML = `
     <div class="pol-head"><h3>${p.name}</h3><span class="ver">策略卡 ${p.policy_version} · ${p.effective_date} 生效</span></div>
+    ${p.source_note ? `<div class="pol-src">${p.source_note}</div>` : ""}
     ${policyWarnHtml(p)}
     <div class="ai-policy"><b>AI 政策：</b>${p.ai_policy}</div>
     <p class="kv"><b>关键指标</b>${p.key_metrics.join("、")}</p>

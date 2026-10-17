@@ -15,7 +15,7 @@ export const PLATFORM_PROFILES = {
   },
   qimao: {
     label: "七猫小说",
-    policy: "2026-09-01《生成式AI服务管理办法》施行，要求标注AI辅助使用；人工编辑初审，开篇三章是生死线",
+    policy: "人工编辑初审，开篇三章是生死线；AI 辅助写作建议人工审改",
     tell_warn: 6, tell_fail: 12,
     focus: ["开篇 AI 味", "一眼模板化", "开场景描套路"],
     opening_weight: true,

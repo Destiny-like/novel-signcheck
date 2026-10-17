@@ -348,3 +348,6 @@ footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top
 .pol-warn { border-radius: 8px; padding: 8px 12px; font-size: 13px; margin: 10px 0; }
 .pol-warn.expired { background: var(--fail-bg); color: var(--fail); border: 1px solid var(--fail); }
 .pol-warn.aging { background: var(--review-bg); color: var(--review); border: 1px solid var(--review); }
+
+/* ---------- 策略卡来源标注 ---------- */
+.pol-src { font-size: 12px; color: var(--text-3); margin: 8px 0; padding: 6px 10px; background: var(--surface-2); border-radius: 6px; }
