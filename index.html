@@ -550,8 +550,10 @@ body[data-mode="check"] .write-panel { display: none; }
       <textarea id="writeArea" rows="14" placeholder="AI 生成的初稿会出现在这里，也可以直接手写……"></textarea>
       <div class="action-row">
         <span id="writeCount" class="muted">0 字</span>
+        <button id="reviewChBtn" class="ghost">🔍 章节评审（编辑视角）</button>
         <button id="saveChBtn" class="primary">保存本章（自动更新记忆+过审）</button>
       </div>
+      <div id="writeReview"></div>
       <div id="writeSigncheck"></div>
     </section>
 
@@ -1475,6 +1477,46 @@ ${foreshadows || "（暂无）"}
 {"score": 85, "issues": [{"type": "水文/冲突/伏笔/人物/钩子", "location": "第X卷/第X章", "problem": "问题描述", "suggestion": "修改建议"}]}`;
 }
 
+// ---------- 章节评审 prompt（编辑视角，对齐签约标准） ----------
+function buildChapterReviewPrompt(p, chN, content) {
+const ch = findChapter(p, chN);
+const chars = p.characters.map(c => `${c.name}：${c.traits}｜${c.status}`).join("\n");
+return `你是起点/番茄的资深签约编辑，负责审读投稿章节。请用编辑的挑剔眼光评审下面这一章。
+
+【本书设定】
+${p.worldview.era}｜${p.worldview.power_system}
+
+【人物小传】
+${chars || "（暂无）"}
+
+【本章大纲要求】
+情节点：${ch?.beats || "（无，按宪法自由发挥）"}
+${ch?.plant?.length ? `应埋伏笔：${ch.plant.join("、")}` : ""}
+${ch?.payoff?.length ? `应收伏笔：${ch.payoff.join("、")}` : ""}
+
+【待评审正文】
+${content.slice(0, 8000)}
+
+【评审维度】（每维 20 分，共 100 分）
+1. 开头钩子（20分）：前 300 字有没有抓住人？冲突/悬念/反转三选一，没有=不及格
+2. 情节点（20分）：本章有没有有效推进？纯过渡水文=低分
+3. 人物一致性（20分）：言行是否符合小传？有没有 ooc？
+4. 节奏（20分）：有没有拖沓灌水？对话/描写/叙事比例是否合理？
+5. 伏笔（20分）：该埋的埋了没？该收的收了没？收得自然吗？
+
+【判分铁律】
+- 体裁爽点套路（退婚/打脸/升级）是网文约定，不扣分
+- 修辞华丽但信息空洞，节奏项扣分
+- 人物 ooc 一票降档（最高 59 分）
+- 开头 300 字无钩子，开头项 ≤8 分
+
+严格按以下 JSON 输出（不要其他内容）：
+{"score": 75, "verdict": "通过/需修改/不合格",
+ "dims": [{"name": "开头钩子", "score": 15, "comment": "一句话点评"}, {"name": "情节点", "score": 16, "comment": ""}, {"name": "人物一致性", "score": 18, "comment": ""}, {"name": "节奏", "score": 12, "comment": ""}, {"name": "伏笔", "score": 14, "comment": ""}],
+ "must_fix": ["必须改的问题1", "问题2"],
+ "suggestions": ["优化建议1", "建议2"]}`;
+}
+
 const $ = (id) => document.getElementById(id);
 let selectedPlatform = "fanqie";
 
@@ -2093,6 +2135,34 @@ function initWriting() {
     $("genChBtn").textContent = "AI 生成初稿";
   };
   $("saveChBtn").onclick = saveChapter;
+  // 章节评审（编辑视角）
+  $("reviewChBtn").onclick = async () => {
+    if (!curProj) { alert("先新建/打开作品"); return; }
+    const content = $("writeArea").value.trim();
+    if (content.length < 200) { alert("正文太短，先写点内容再评审"); return; }
+    const creds = getCreds();
+    if (!creds.key) { alert("请先在 BYOK 配置里填 API Key"); return; }
+    const n = +$("writeChN").value;
+    const btn = $("reviewChBtn");
+    btn.textContent = "评审中…"; btn.disabled = true;
+    try {
+      const raw = await callLLM(buildChapterReviewPrompt(curProj, n, content), creds, { temperature: 0.3 });
+      const m = raw.match(/\{[\s\S]*\}/);
+      if (!m) throw new Error("解析失败");
+      const r = JSON.parse(m[0]);
+      const vColor = r.verdict === "通过" ? "verdict-pass" : r.verdict === "需修改" ? "verdict-review" : "verdict-fail";
+      $("writeReview").innerHTML =
+        `<div class="ch-task"><b>章节评审 · 第 ${n} 章：<span class="${vColor}">${esc(r.verdict)}</span>（${r.score} 分）</b></div>` +
+        (r.dims || []).map(d => `<div class="ch-row">【${esc(d.name)} ${d.score}分】${esc(d.comment)}</div>`).join("") +
+        (r.must_fix?.length ? `<div class="ch-task">🔧 必须改：<br>${r.must_fix.map(x => `· ${esc(x)}`).join("<br>")}</div>` : "") +
+        (r.suggestions?.length ? `<div class="ch-row muted">💡 建议：<br>${r.suggestions.map(x => `· ${esc(x)}`).join("<br>")}</div>` : "");
+      // 存评审结果
+      if (!curProj.chapters[n]) curProj.chapters[n] = {};
+      curProj.chapters[n].review = { score: r.score, verdict: r.verdict };
+      saveProject(curProj);
+    } catch (e) { alert("评审失败：" + e.message); }
+    btn.textContent = "🔍 章节评审（编辑视角）"; btn.disabled = false;
+  };
 }
 
 async function saveChapter() {
