@@ -3,46 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>签约前自查 · 网文投稿模拟考</title>
+<title>墨判 · 写审一体</title>
 <style>
-/* 签约前自查 · v0.3 UI
- * 设计语言：深色工作台（学自 Denova / 青烛这类 AI 写作工具）
- * 默认深色 + 浅色切换；印章红为品牌点缀色
+/* 墨判 v1.0 · 新中式暗色墨调
+ * 墨为底、纸为文、印章红点睛、金线分隔
  */
 
 :root, [data-theme="dark"] {
-  --bg: #0f1113;
-  --surface: #16181b;
-  --surface-2: #1d2024;
-  --surface-3: #24282e;
-  --border: #262b31;
-  --border-soft: #1e2227;
-  --text: #e9eaec;
-  --text-2: #a9b0b8;
-  --text-3: #6d757e;
-  --accent: #e5484d;
-  --accent-soft: rgba(229, 72, 77, .12);
-  --pass: #3fb950; --pass-bg: rgba(63, 185, 80, .1);
+  --bg: #0e1013;
+  --surface: #15181d;
+  --surface-2: #1b1f26;
+  --surface-3: #22272f;
+  --border: #262c35;
+  --border-soft: #1c2129;
+  --text: #ece4d4;
+  --text-2: #b3a88f;
+  --text-3: #6f6a5c;
+  --accent: #c8402a;
+  --accent-soft: rgba(200, 64, 42, .14);
+  --gold: #c9a86a;
+  --gold-soft: rgba(201, 168, 106, .12);
+  --pass: #4caf7d; --pass-bg: rgba(76, 175, 125, .1);
   --review: #d29922; --review-bg: rgba(210, 153, 34, .1);
-  --fail: #f85149; --fail-bg: rgba(248, 81, 73, .1);
-  --shadow: 0 8px 28px rgba(0, 0, 0, .35);
+  --fail: #e5484d; --fail-bg: rgba(229, 72, 77, .1);
+  --shadow: 0 8px 28px rgba(0, 0, 0, .4);
+  --serif: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
 }
 [data-theme="light"] {
-  --bg: #f4f2ed;
-  --surface: #fffdf9;
-  --surface-2: #faf7f0;
-  --surface-3: #f1ece1;
-  --border: #e3dccb;
-  --border-soft: #ece5d3;
-  --text: #22211d;
-  --text-2: #5c574a;
-  --text-3: #9a937f;
+  --bg: #f2ede1;
+  --surface: #faf6ec;
+  --surface-2: #f4eee0;
+  --surface-3: #ece4d2;
+  --border: #ddd2b8;
+  --border-soft: #e8dfc9;
+  --text: #2b2620;
+  --text-2: #6b6252;
+  --text-3: #a09a86;
   --accent: #b3402a;
   --accent-soft: rgba(179, 64, 42, .08);
+  --gold: #9a7b3f;
+  --gold-soft: rgba(154, 123, 63, .1);
   --pass: #2e7d32; --pass-bg: rgba(46, 125, 50, .08);
   --review: #b25e09; --review-bg: rgba(178, 94, 9, .08);
   --fail: #b3402a; --fail-bg: rgba(179, 64, 42, .08);
-  --shadow: 0 1px 2px rgba(35,33,28,.05), 0 8px 24px rgba(35,33,28,.06);
+  --shadow: 0 1px 2px rgba(60,50,35,.06), 0 8px 24px rgba(60,50,35,.08);
 }
 
 * { box-sizing: border-box; }
@@ -53,456 +57,244 @@ body {
     "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
   -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.6;
 }
-
-/* ---------- 顶栏 ---------- */
-.topbar {
-  position: sticky; top: 0; z-index: 60;
-  display: flex; align-items: center; justify-content: space-between;
-  height: 58px; padding: 0 20px;
-  background: var(--surface); border-bottom: 1px solid var(--border);
-}
-.brand { display: flex; align-items: center; gap: 12px; }
-.logo {
-  width: 34px; height: 34px; border-radius: 9px;
-  background: linear-gradient(135deg, #e5484d, #a02c30);
-  color: #fff; font-size: 19px; font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 10px rgba(229, 72, 77, .4);
-}
-.brand-name { font-size: 16px; font-weight: 750; letter-spacing: .04em; }
-.brand-sub { font-size: 11px; color: var(--text-3); }
-.ver-badge {
-  font-size: 11px; font-weight: 700; color: var(--accent);
-  background: var(--accent-soft); border: 1px solid var(--accent);
-  border-radius: 999px; padding: 2px 10px;
-}
-.topbar-right { display: flex; align-items: center; gap: 14px; }
-.policy-mini { font-size: 11.5px; color: var(--text-3); }
-.icon-btn {
-  width: 34px; height: 34px; border-radius: 9px; padding: 0;
-  background: var(--surface-2); border: 1px solid var(--border);
-  color: var(--text-2); font-size: 16px; cursor: pointer;
-}
-.icon-btn:hover { color: var(--text); border-color: var(--accent); }
+h1, h2, h3, .brand-name, .seal { font-family: var(--serif); }
 
 /* ---------- 布局 ---------- */
-.layout { display: flex; max-width: 1280px; margin: 0 auto; align-items: flex-start; }
-.sidebar {
-  position: sticky; top: 58px; width: 248px; flex-shrink: 0;
-  height: calc(100vh - 58px); overflow-y: auto;
-  padding: 20px 14px; border-right: 1px solid var(--border-soft);
-  display: flex; flex-direction: column; justify-content: space-between;
-}
-#stepNav { display: flex; flex-direction: column; gap: 4px; }
-#stepNav a {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 12px; border-radius: 10px;
-  text-decoration: none; color: var(--text-2);
-  border: 1px solid transparent; transition: all .15s;
-}
-#stepNav a .n {
-  width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
-  background: var(--surface-3); color: var(--text-3);
-  font-size: 13px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-}
-#stepNav a .t b { display: block; font-size: 13.5px; font-weight: 650; }
-#stepNav a .t i { display: block; font-style: normal; font-size: 11px; color: var(--text-3); }
-#stepNav a:hover { background: var(--surface-2); }
-#stepNav a.active { background: var(--surface-2); border-color: var(--border); color: var(--text); }
-#stepNav a.active .n { background: var(--accent); color: #fff; }
-.side-foot { margin-top: 20px; padding: 14px; background: var(--surface-2);
-  border: 1px solid var(--border-soft); border-radius: 10px; }
-.side-foot-title { font-size: 12px; font-weight: 700; color: var(--text-2); margin-bottom: 6px; }
-.side-foot p { margin: 0; font-size: 11.5px; color: var(--text-3); line-height: 1.8; }
+.layout { display: flex; min-height: 100vh; }
+main { flex: 1; padding: 28px 32px; max-width: 1080px; }
 
-main { flex: 1; min-width: 0; padding: 20px 22px 60px; }
+/* ---------- 侧边栏 ---------- */
+.sidebar {
+  width: 248px; flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh;
+}
+.brand { display: flex; align-items: center; gap: 12px; padding: 20px 18px 16px; }
+.seal {
+  width: 44px; height: 44px; border-radius: 8px;
+  background: var(--accent); color: #fff8f0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 700;
+  box-shadow: var(--shadow);
+}
+.brand-name { font-size: 20px; font-weight: 700; letter-spacing: 4px; }
+.brand-sub { font-size: 11px; color: var(--text-3); letter-spacing: 2px; }
+
+#sideNav { flex: 1; overflow-y: auto; padding: 4px 10px; }
+.nav-group { margin-bottom: 14px; }
+.nav-group-title {
+  font-size: 11px; color: var(--text-3); letter-spacing: 3px;
+  padding: 8px 10px 4px; border-bottom: 1px solid var(--border-soft);
+  margin-bottom: 4px;
+}
+#sideNav a {
+  display: flex; gap: 10px; align-items: center;
+  padding: 8px 10px; border-radius: 8px;
+  color: var(--text-2); text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: all .15s;
+}
+#sideNav a:hover { background: var(--surface-2); color: var(--text); }
+#sideNav a.active {
+  background: var(--gold-soft); color: var(--text);
+  border-left-color: var(--gold);
+}
+#sideNav a .n { font-size: 16px; width: 22px; text-align: center; }
+#sideNav a .t b { display: block; font-size: 13px; font-weight: 600; }
+#sideNav a .t i { display: block; font-size: 11px; font-style: normal; color: var(--text-3); }
+
+.side-foot { padding: 14px 16px; border-top: 1px solid var(--border-soft); }
+.side-foot .muted { font-size: 11px; color: var(--text-3); margin: 8px 0 0; line-height: 1.7; }
+
+/* ---------- 面板 ---------- */
 .panel {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 14px; padding: 22px; margin-bottom: 16px;
-  scroll-margin-top: 74px;
+  border-radius: 12px; padding: 22px 24px; margin-bottom: 20px;
+  box-shadow: var(--shadow);
 }
-.panel-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-.panel-head h2 { margin: 0; font-size: 17px; font-weight: 750; }
-.panel-desc { font-size: 12.5px; color: var(--text-3); }
-.tag { font-size: 11px; color: var(--text-3); border: 1px solid var(--border);
-  border-radius: 999px; padding: 2px 10px; font-weight: 400; }
+.panel-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+.panel-head h2 { margin: 0; font-size: 19px; letter-spacing: 2px; }
+.panel-head h2::before { content: "◆ "; color: var(--gold); font-size: 13px; }
+.panel-desc { font-size: 12px; color: var(--text-3); }
+h3 { font-size: 15px; letter-spacing: 1px; margin: 18px 0 10px; color: var(--gold); }
+
+/* ---------- 表单 ---------- */
+input, textarea, select {
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--text); border-radius: 8px; padding: 9px 12px;
+  font-size: 14px; font-family: inherit; width: 100%;
+}
+input:focus, textarea:focus, select:focus {
+  outline: none; border-color: var(--gold);
+  box-shadow: 0 0 0 2px var(--gold-soft);
+}
+textarea { resize: vertical; line-height: 1.8; }
+label { display: block; font-size: 13px; color: var(--text-2); margin-bottom: 10px; }
+label input, label textarea, label select { margin-top: 5px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+.action-row { display: flex; gap: 10px; align-items: center; margin: 14px 0; flex-wrap: wrap; }
+.action-row input { width: auto; flex: 1; min-width: 180px; }
+
+/* ---------- 按钮 ---------- */
+button {
+  border: 1px solid var(--border); background: var(--surface-2);
+  color: var(--text); border-radius: 8px; padding: 9px 18px;
+  font-size: 14px; cursor: pointer; transition: all .15s;
+  font-family: inherit; letter-spacing: 1px;
+}
+button:hover { border-color: var(--gold); }
+button.primary {
+  background: var(--accent); border-color: var(--accent); color: #fff8f0;
+  font-weight: 600;
+}
+button.primary:hover { filter: brightness(1.12); }
+button.ghost { background: transparent; }
+button.sm { padding: 4px 10px; font-size: 12px; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.icon-btn { padding: 6px 10px; }
+
+/* ---------- 通用块 ---------- */
+.muted { color: var(--text-3); font-size: 12px; }
+.empty-note { color: var(--text-3); padding: 18px; text-align: center; font-size: 13px; }
+.ch-task {
+  background: var(--gold-soft); border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  border-radius: 8px; padding: 10px 14px; margin: 10px 0; font-size: 13px;
+}
+.ch-row {
+  padding: 8px 12px; border-bottom: 1px solid var(--border-soft);
+  font-size: 13px;
+}
+.tag {
+  font-size: 11px; background: var(--accent-soft); color: var(--accent);
+  border-radius: 4px; padding: 1px 6px; margin-left: 6px;
+  font-family: sans-serif; letter-spacing: 0;
+}
+.verdict-pass { color: var(--pass); font-weight: 700; }
+.verdict-review { color: var(--review); font-weight: 700; }
+.verdict-fail { color: var(--fail); font-weight: 700; }
 
 /* ---------- 平台卡片 ---------- */
 .pcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .pcard {
-  position: relative; text-align: left; cursor: pointer; font-family: inherit;
-  background: var(--surface-2); border: 1.5px solid var(--border);
-  border-radius: 12px; padding: 16px; color: var(--text);
-  transition: all .16s;
-}
-.pcard:hover { border-color: var(--text-3); transform: translateY(-1px); }
-.pcard.active { border-color: var(--accent); background: var(--accent-soft); }
-.pcard.active::after {
-  content: "✓"; position: absolute; top: 12px; right: 12px;
-  width: 22px; height: 22px; border-radius: 50%;
-  background: var(--accent); color: #fff; font-size: 13px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-}
-.pcard-name { font-size: 16px; font-weight: 750; }
-.pcard-tag { font-size: 12px; color: var(--text-2); margin-top: 6px; line-height: 1.6; min-height: 38px; }
-.pcard-ai { font-size: 12px; margin-top: 8px; }
-.pcard-ai .sev { font-weight: 700; padding: 1px 8px; border-radius: 999px; font-size: 11px; }
-.sev.s-high { color: var(--fail); background: var(--fail-bg); }
-.sev.s-mid { color: var(--review); background: var(--review-bg); }
-.pcard-ver { font-size: 11px; color: var(--text-3); margin-top: 6px; }
-
-/* ---------- 策略卡 ---------- */
-.pol-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
-.pol-head h3 { margin: 0; font-size: 16px; }
-.pol-head .ver { font-size: 11.5px; color: var(--text-3); }
-.ai-policy {
-  margin: 12px 0; padding: 12px 14px; font-size: 13.5px; line-height: 1.7;
-  background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
-}
-.kv { font-size: 13.5px; margin: 10px 0; line-height: 1.7; }
-.kv b { color: var(--text-2); font-weight: 650; margin-right: 8px; }
-.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 4px 0; }
-.cols h4 { margin: 0 0 6px; font-size: 13px; color: var(--text-2); }
-.cols ol, .cols ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--text-2); line-height: 1.9; }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.chip { font-size: 12px; padding: 4px 12px; border-radius: 999px;
-  background: var(--surface-3); border: 1px solid var(--border); color: var(--text-2); }
-.chip.danger { color: var(--fail); border-color: var(--fail); background: var(--fail-bg); }
-
-/* ---------- 输入与按钮 ---------- */
-textarea {
-  width: 100%; background: var(--surface-2); color: var(--text);
   border: 1px solid var(--border); border-radius: 10px;
-  padding: 14px; font-size: 14px; line-height: 1.9; font-family: inherit;
-  resize: vertical; transition: border-color .15s;
+  padding: 14px; cursor: pointer; transition: all .15s;
+  background: var(--surface-2);
 }
-textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-textarea::placeholder { color: var(--text-3); }
-.action-row { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
-.muted { color: var(--text-3); font-size: 12.5px; }
-button { font-family: inherit; border-radius: 10px; padding: 10px 24px;
-  font-size: 14px; font-weight: 650; cursor: pointer; transition: all .15s; }
-button.primary { background: var(--accent); color: #fff; border: none; }
-button.primary:hover { filter: brightness(1.1); }
-button.primary:disabled { opacity: .55; cursor: wait; }
-button.ghost { background: transparent; border: 1px solid var(--border); color: var(--text-2); }
-button.ghost:hover { border-color: var(--accent); color: var(--accent); }
+.pcard:hover { border-color: var(--gold); }
+.pcard.sel { border-color: var(--accent); background: var(--accent-soft); }
+.pcard b { font-family: var(--serif); font-size: 15px; letter-spacing: 1px; }
 
-/* ---------- 结论横幅 ---------- */
-.verdict {
-  display: flex; gap: 14px; align-items: flex-start;
-  border-radius: 12px; padding: 18px; margin: 18px 0 4px;
-  border: 1px solid; border-left-width: 4px;
+/* ---------- 管线 ---------- */
+.pipeline { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.pl-step {
+  flex: 1; min-width: 120px; text-align: center;
+  border: 1px solid var(--border); border-radius: 8px; padding: 10px 6px;
+  font-size: 12px; cursor: pointer; background: var(--surface-2);
 }
-.verdict.v-pass { background: var(--pass-bg); border-color: var(--pass); }
-.verdict.v-review { background: var(--review-bg); border-color: var(--review); }
-.verdict.v-fail { background: var(--fail-bg); border-color: var(--fail); }
-.v-icon { font-size: 26px; line-height: 1.2; }
-.v-pass .v-icon { color: var(--pass); } .v-review .v-icon { color: var(--review); } .v-fail .v-icon { color: var(--fail); }
-.v-label { font-size: 19px; font-weight: 800; }
-.v-pass .v-label { color: var(--pass); } .v-review .v-label { color: var(--review); } .v-fail .v-label { color: var(--fail); }
-.v-hint { font-size: 13px; color: var(--text-2); margin-top: 4px; }
-.v-policy { font-size: 12px; color: var(--text-3); margin-top: 6px; }
-.v-reasons { margin: 8px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.8; color: var(--text-2); }
+.pl-step.done { border-color: var(--pass); }
+.pl-step.bad { border-color: var(--fail); }
+.pl-summary { font-size: 13px; color: var(--text-2); }
 
-/* ---------- 指标瓷砖 ---------- */
-.metric-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 16px 0; }
-.metric { background: var(--surface-2); border: 1px solid var(--border-soft);
-  border-radius: 10px; padding: 12px 8px; text-align: center; }
-.m-num { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
-.m-num.warn { color: var(--review); } .m-num.bad { color: var(--fail); }
-.m-label { font-size: 11px; color: var(--text-3); margin-top: 4px; line-height: 1.5; }
-
-/* ---------- 信号行（审阅面板风） ---------- */
-.sec-title { font-size: 14px; font-weight: 700; margin: 20px 0 10px;
-  display: flex; align-items: center; gap: 8px; }
-.sec-title::before { content: ""; width: 3px; height: 14px; background: var(--accent); border-radius: 2px; }
-.sig-list { display: flex; flex-direction: column; gap: 8px; }
-.sig-row {
-  display: flex; gap: 12px; align-items: flex-start;
-  background: var(--surface-2); border: 1px solid var(--border-soft);
-  border-radius: 10px; padding: 12px 14px;
+/* ---------- 写作区 ---------- */
+#writeArea { min-height: 320px; font-size: 15px; }
+.proj-list { display: flex; flex-direction: column; gap: 8px; }
+.mem-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.const-preview {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px; font-size: 12px;
+  white-space: pre-wrap; max-height: 400px; overflow-y: auto;
+  color: var(--text-2);
 }
-.sig-row.sev-high { border-left: 3px solid var(--fail); }
-.sig-row.sev-medium { border-left: 3px solid var(--review); }
-.sig-row.sev-low { border-left: 3px solid var(--text-3); }
-.sev-pill { flex-shrink: 0; font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 999px; margin-top: 2px; }
-.sev-pill.sev-high { color: var(--fail); background: var(--fail-bg); }
-.sev-pill.sev-medium { color: var(--review); background: var(--review-bg); }
-.sev-pill.sev-low { color: var(--text-3); background: var(--surface-3); }
-.sig-body { flex: 1; min-width: 0; }
-.sig-name { font-size: 13.5px; font-weight: 700; }
-.sig-why { font-size: 12px; color: var(--text-3); margin-top: 2px; }
-.sig-ex { font-size: 12px; color: var(--text-2); margin-top: 6px; }
-.sig-ex code { background: var(--surface-3); padding: 1px 7px; border-radius: 5px;
-  font-size: 11.5px; margin-right: 6px; }
-.sig-stat { flex-shrink: 0; text-align: right; font-size: 12px; color: var(--text-3); }
-.sig-stat b { display: block; font-size: 17px; color: var(--text); font-variant-numeric: tabular-nums; }
+.byok-grid { display: flex; flex-direction: column; gap: 10px; max-width: 560px; }
+.byok-actions { display: flex; gap: 10px; }
+.vol-block { border: 1px solid var(--border-soft); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+.vol-block h4 { margin: 0 0 10px; font-family: var(--serif); letter-spacing: 1px; }
+.vol-block .ch-row { display: flex; gap: 8px; align-items: center; }
+.vol-block .ch-row input.n { width: 64px; flex-shrink: 0; }
+.vol-block .ch-row input.tt { width: 200px; flex-shrink: 0; }
+.vol-block .ch-row input.bt { flex: 1; }
 
-.risk-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
-.risk-list li { background: var(--review-bg); border: 1px solid var(--review);
-  border-radius: 10px; padding: 10px 14px; font-size: 13px; }
-.dup-list { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--text-2); line-height: 2; }
-.dup-list code { background: var(--surface-3); padding: 1px 7px; border-radius: 5px; }
-.focus-box { background: var(--surface-2); border: 1px solid var(--border-soft);
-  border-radius: 10px; padding: 12px 14px; font-size: 13px; margin-top: 14px; }
-.focus-box b { color: var(--accent); }
-.empty-note { color: var(--text-3); font-size: 13px; padding: 12px; text-align: center;
-  background: var(--surface-2); border-radius: 10px; border: 1px dashed var(--border); }
-.disclaimer { font-size: 11.5px; color: var(--text-3); line-height: 1.8; margin-top: 14px; }
-
-/* ---------- checklist ---------- */
-.check-item {
-  display: flex; gap: 10px; align-items: flex-start;
-  padding: 11px 4px; border-bottom: 1px solid var(--border-soft);
-  cursor: pointer; font-size: 13.5px;
-}
-.check-item:last-of-type { border-bottom: none; }
-.check-item input { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--accent); flex-shrink: 0; }
-.check-item.done span:last-child { color: var(--text-3); text-decoration: line-through; }
-.badge { font-size: 11px; padding: 2px 10px; border-radius: 999px; white-space: nowrap; font-weight: 700; flex-shrink: 0; }
-.badge.blocking { color: var(--fail); background: var(--fail-bg); }
-.badge.advisory { color: var(--pass); background: var(--pass-bg); }
-#evalBtn { margin-top: 14px; }
-.check-verdict { margin-top: 12px; font-size: 13.5px; line-height: 1.8; }
-.check-verdict .ok { color: var(--pass); font-weight: 700; }
-.check-verdict .ng { color: var(--fail); font-weight: 700; }
-.check-verdict ul { margin: 8px 0 0; padding-left: 18px; color: var(--text-2); }
-
-/* ---------- BYOK ---------- */
-.byok-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.byok-grid input {
-  background: var(--surface-2); color: var(--text);
-  border: 1px solid var(--border); border-radius: 10px;
-  padding: 11px 13px; font-size: 13.5px; font-family: inherit;
-}
-.byok-grid input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-.byok-grid input::placeholder { color: var(--text-3); }
-.byok-actions { grid-column: 1 / -1; display: flex; gap: 10px; }
-pre {
-  white-space: pre-wrap; background: var(--surface-2);
-  border: 1px solid var(--border-soft); border-radius: 10px;
-  padding: 16px; font-size: 13px; line-height: 1.8; margin-top: 14px;
+/* ---------- 页脚 ---------- */
+footer {
+  text-align: center; color: var(--text-3); font-size: 12px;
+  padding: 20px 0 8px; letter-spacing: 1px;
 }
 
-footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top: 36px; line-height: 2; }
-
-/* ---------- AI 深度复核（五维语义） ---------- */
-.verdict-banner { background: var(--surface-2); border: 1px solid var(--border-soft);
-  border-radius: 10px; padding: 14px 16px; margin: 12px 0; font-size: 14px; line-height: 1.7; }
-.metric-grid.deep-dims { grid-template-columns: repeat(5, 1fr); }
-.metric .m-desc { font-size: 11px; color: var(--text-3); margin-top: 6px; line-height: 1.6; }
-.ev-chip { display: inline-block; font-size: 11px; color: var(--text-2); background: var(--surface-3);
-  border: 1px solid var(--border-soft); border-radius: 20px; padding: 2px 10px; margin: 4px 4px 0 0; }
-.counter { font-size: 12.5px; color: var(--text-3); background: var(--surface-2);
-  border: 1px dashed var(--border-soft); border-radius: 10px; padding: 10px 14px; margin-top: 12px; line-height: 1.7; }
-
-/* ---------- 响应式 ---------- */
-@media (max-width: 900px) {
-  .sidebar { display: none; }
-  .metric-grid { grid-template-columns: repeat(3, 1fr); }
-  .policy-mini { display: none; }
+/* ---------- 移动端 ---------- */
+@media (max-width: 860px) {
+  .sidebar { width: 200px; }
+  main { padding: 16px; }
+  .form-grid, .mem-cols, .pcards { grid-template-columns: 1fr; }
 }
-@media (max-width: 640px) {
-  .pcards, .cols, .byok-grid { grid-template-columns: 1fr; }
-  main { padding: 14px 12px 50px; }
-  .panel { padding: 16px; }
-  .sig-row { flex-wrap: wrap; }
-}
-
-/* ---------- Phase 2a · 过签管线 ---------- */
-.pipeline { display: flex; align-items: stretch; gap: 0; overflow-x: auto; padding: 4px 2px; }
-.pl-node {
-  flex: 1 1 0; min-width: 96px; display: flex; flex-direction: column; align-items: center; gap: 2px;
-  background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
-  padding: 10px 6px; cursor: pointer; color: var(--text); font: inherit;
-}
-.pl-node:hover { border-color: var(--accent); }
-.pl-link { align-self: center; flex: 0 0 14px; height: 2px; background: var(--border); }
-.pl-dot {
-  width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; background: var(--surface-3); color: var(--text-3);
-}
-.pl-title { font-size: 12px; font-weight: 600; white-space: nowrap; }
-.pl-title em { font-style: normal; font-size: 10px; color: var(--text-3); }
-.pl-state { font-size: 11px; color: var(--text-3); }
-.pl-node.st-done .pl-dot { background: var(--pass-bg); color: var(--pass); }
-.pl-node.st-done .pl-state { color: var(--pass); }
-.pl-node.st-running .pl-dot { background: var(--review-bg); color: var(--review); animation: plpulse 1s infinite; }
-.pl-node.st-warn .pl-dot { background: var(--review-bg); color: var(--review); }
-.pl-node.st-warn .pl-state { color: var(--review); }
-.pl-node.st-blocked { border-color: var(--fail); }
-.pl-node.st-blocked .pl-dot { background: var(--fail-bg); color: var(--fail); }
-.pl-node.st-blocked .pl-state { color: var(--fail); }
-@keyframes plpulse { 50% { opacity: .5; } }
-.pl-summary { margin-top: 10px; font-size: 14px; }
-.pl-summary .ok { color: var(--pass); } .pl-summary .ng { color: var(--text-2); }
-
-/* ---------- Phase 2a · 改写建议 ---------- */
-.rw-list { display: flex; flex-direction: column; gap: 10px; }
-.rw-card { background: var(--surface-2); border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: 10px; padding: 12px 14px; }
-.rw-card.sev-high { border-left-color: var(--fail); }
-.rw-card.sev-medium { border-left-color: var(--review); }
-.rw-card.sev-low { border-left-color: var(--text-3); }
-.rw-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
-.rw-head b { font-size: 14px; }
-.rw-hits { margin-left: auto; font-size: 12px; color: var(--text-3); }
-.rw-card ol { margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-2); display: flex; flex-direction: column; gap: 4px; }
-.rw-note { font-size: 13px; color: var(--text-3); margin-top: 10px; }
-
-/* ---------- Phase 2a · 策略卡过期预警 ---------- */
-.pol-warn { border-radius: 8px; padding: 8px 12px; font-size: 13px; margin: 10px 0; }
-.pol-warn.expired { background: var(--fail-bg); color: var(--fail); border: 1px solid var(--fail); }
-.pol-warn.aging { background: var(--review-bg); color: var(--review); border: 1px solid var(--review); }
-
-/* ---------- 策略卡来源标注 ---------- */
-.pol-src { font-size: 12px; color: var(--text-3); margin: 8px 0; padding: 6px 10px; background: var(--surface-2); border-radius: 6px; }
-
-/* ============ 写作工作台（Phase 2b-1） ============ */
-.mode-switch { display: inline-flex; gap: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 3px; margin-right: 10px; }
-.mode-btn { border: 0; background: transparent; color: var(--muted); padding: 6px 12px; border-radius: 7px; cursor: pointer; font-size: 13px; }
-.mode-btn.active { background: var(--accent); color: #fff; }
-.mode-btn .tag { font-size: 10px; opacity: .8; margin-left: 4px; }
-body[data-mode="write"] .check-panel { display: none; }
-body[data-mode="write"] .write-panel { display: block; }
-body[data-mode="check"] .write-panel { display: none; }
-.proj-list { display: grid; gap: 8px; margin-top: 12px; }
-.proj-card { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
-.proj-card .t { font-weight: 600; }
-.proj-card .m { color: var(--muted); font-size: 12px; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
-.form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
-.form-grid input, .form-grid textarea, .form-grid select { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; color: var(--text); font-size: 14px; }
-.char-card { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin: 8px 0; }
-.char-card .form-grid { margin: 6px 0; }
-.vol-block { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin: 10px 0; }
-.vol-block h4 { margin: 0 0 8px; }
-.ch-row { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px dashed var(--border); font-size: 13px; }
-.ch-row input { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; color: var(--text); font-size: 13px; }
-.ch-row .n { width: 44px; } .ch-row .tt { flex: 2; } .ch-row .bt { flex: 3; }
-.ch-task { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin: 10px 0; font-size: 13px; }
-.ch-task b { color: var(--accent); }
-#writeArea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; color: var(--text); font-size: 15px; line-height: 1.8; margin-top: 10px; }
-.mem-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.const-preview { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; max-height: 320px; overflow: auto; font-size: 12.5px; line-height: 1.7; white-space: pre-wrap; }
-.ghost.sm { padding: 3px 10px; font-size: 12px; }
-.verdict-pass { color: #3fb950; font-weight: 700; }
-.verdict-review { color: #d29922; font-weight: 700; }
-.verdict-fail { color: #f85149; font-weight: 700; }
 
 </style>
 </head>
 <body>
 
-<header class="topbar">
-  <div class="brand">
-    <div class="logo">签</div>
-    <div class="brand-text">
-      <div class="brand-name">签约前自查</div>
-      <div class="brand-sub">网文投稿模拟考</div>
-    </div>
-    <span class="ver-badge">v0.6</span>
-  </div>
-  <div class="topbar-right">
-    <div class="mode-switch">
-      <button id="modeCheck" class="mode-btn active">过审工作台</button>
-      <button id="modeWrite" class="mode-btn">写作工作台<span class="tag">2b-1</span></button>
-    </div>
-    <span class="policy-mini">番茄 v2026.10.12 · 七猫 v2026.10.16 · 起点 v2026.10.16</span>
-    <button id="themeToggle" class="icon-btn" title="切换浅色/深色">◐</button>
-  </div>
-</header>
-
 <div class="layout">
   <aside class="sidebar">
-    <nav id="stepNav">
-      <a href="#step1" data-step="step1"><span class="n">1</span><span class="t"><b>选择平台</b><i>三平台审核口径不同</i></span></a>
-      <a href="#step2" data-step="step2"><span class="n">2</span><span class="t"><b>平台策略卡</b><i>签约流程·收益·红线</i></span></a>
-      <a href="#step3" data-step="step3"><span class="n">3</span><span class="t"><b>粘贴检测</b><i>AI 味机械初筛</i></span></a>
-      <a href="#step3b" data-step="step3b"><span class="n">4</span><span class="t"><b>改写建议</b><i>按信号定向返工</i></span></a>
-      <a href="#step4" data-step="step4"><span class="n">5</span><span class="t"><b>资格自查</b><i>硬性门槛核对</i></span></a>
-      <a href="#step5" data-step="step5"><span class="n">6</span><span class="t"><b>深度复核</b><i>BYOK · 五维评分</i></span></a>
+    <div class="brand">
+      <div class="seal">判</div>
+      <div class="brand-text">
+        <div class="brand-name">墨判</div>
+        <div class="brand-sub">写审一体</div>
+      </div>
+    </div>
+
+    <nav id="sideNav">
+      <div class="nav-group">
+        <div class="nav-group-title">写作</div>
+        <a href="#w-write" data-panels="w-write" class="active"><span class="n">✍</span><span class="t"><b>写作</b><i>AI 生成 · 人工改</i></span></a>
+        <a href="#w-setting" data-panels="w-setting"><span class="n">⚙</span><span class="t"><b>设定</b><i>世界观 · 人物卡</i></span></a>
+        <a href="#w-outline" data-panels="w-outline"><span class="n">🗺</span><span class="t"><b>大纲</b><i>卷 · 章 · 情节点</i></span></a>
+        <a href="#w-memory" data-panels="w-memory"><span class="n">🧠</span><span class="t"><b>记忆</b><i>时间线 · 伏笔</i></span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">过审</div>
+        <a href="#c-overview" data-panels="c-overview"><span class="n">📊</span><span class="t"><b>管线总览</b><i>六节点流程</i></span></a>
+        <a href="#c-detect" data-panels="step3"><span class="n">🔍</span><span class="t"><b>检测</b><i>AI 味机械初筛</i></span></a>
+        <a href="#c-rewrite" data-panels="step3b"><span class="n">✏</span><span class="t"><b>改写建议</b><i>按信号定向返工</i></span></a>
+        <a href="#c-policy" data-panels="step1,step2"><span class="n">📜</span><span class="t"><b>平台策略</b><i>签约规则 · 红线</i></span></a>
+        <a href="#c-qualify" data-panels="step4"><span class="n">✅</span><span class="t"><b>资格自查</b><i>硬性门槛核对</i></span></a>
+        <a href="#c-deep" data-panels="step5"><span class="n">🧬</span><span class="t"><b>深度复核</b><i>BYOK · 五维评分</i></span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">管理</div>
+        <a href="#w-projects" data-panels="w-projects"><span class="n">📚</span><span class="t"><b>作品</b><i>新建 · 打开 · 导出</i></span></a>
+        <a href="#settings" data-panels="settingsPanel"><span class="n">🔧</span><span class="t"><b>设置</b><i>BYOK · 主题</i></span></a>
+      </div>
     </nav>
-    <nav id="writeNav" hidden>
-      <a href="#w-projects" data-step="w-projects"><span class="n">📚</span><span class="t"><b>我的作品</b><i>新建·打开·导出</i></span></a>
-      <a href="#w-setting" data-step="w-setting"><span class="n">⚙</span><span class="t"><b>设定</b><i>世界观·人物卡</i></span></a>
-      <a href="#w-outline" data-step="w-outline"><span class="n">🗺</span><span class="t"><b>大纲</b><i>卷·章·情节点</i></span></a>
-      <a href="#w-write" data-step="w-write"><span class="n">✍</span><span class="t"><b>写作</b><i>AI 生成·人工改</i></span></a>
-      <a href="#w-memory" data-step="w-memory"><span class="n">🧠</span><span class="t"><b>记忆</b><i>时间线·伏笔</i></span></a>
-    </nav>
+
     <div class="side-foot">
-      <div class="side-foot-title">检测说明</div>
-      <p>本地运行，正文不上传。<br>机械检测只做初筛，结论以五维复核为准。</p>
+      <button id="themeToggle" class="ghost sm" title="切换浅色/深色">◐ 切换主题</button>
+      <p class="muted">本地运行，正文不上传。<br>墨判 v1.0 · 写审一体</p>
     </div>
   </aside>
 
   <main>
-    <section class="panel" id="pipelinePanel">
-      <div class="panel-head"><h2>过签管线</h2><span class="panel-desc">节点式流程：每个节点可单独重跑，点击节点跳转</span></div>
-      <div id="pipelineSteps" class="pipeline"></div>
-      <div id="pipelineSummary" class="pl-summary"></div>
-    </section>
-
-    <section class="panel" id="step1">
-      <div class="panel-head"><h2>选择目标平台</h2><span class="panel-desc">番茄签约前拒签"AI 粗制滥造"（最严）· 七猫人工编辑看开篇+AI 标注 · 起点治理"水文"</span></div>
-      <div id="platformCards" class="pcards"></div>
-    </section>
-
-    <section class="panel" id="step2">
-      <div class="panel-head"><h2>平台策略卡</h2><span class="panel-desc">先看规则再动笔</span></div>
-      <div id="policyCard"></div>
-    </section>
-
-    <section class="panel" id="step3">
-      <div class="panel-head"><h2>粘贴正文并检测</h2><span class="panel-desc">建议至少前 3 章；起点建议前 10 章以便查水文</span></div>
-      <textarea id="inputText" rows="9" placeholder="在此粘贴小说正文……"></textarea>
+    <!-- ============ 写作（首页） ============ -->
+    <section class="panel" id="w-write">
+      <div class="panel-head"><h2>写作</h2><span class="panel-desc">AI 生成初稿 → 人工改 → 保存即自动过审（写审一体）</span></div>
       <div class="action-row">
-        <span id="charCount" class="muted">0 字</span>
-        <button id="detectBtn" class="primary">开始检测</button>
+        <label>写第 <input id="writeChN" type="number" min="1" value="1" style="width:64px"> 章</label>
+        <button id="loadChBtn" class="ghost">载入本章任务</button>
+        <button id="genChBtn" class="primary">AI 生成初稿</button>
       </div>
-      <div id="result"></div>
-    </section>
-
-    <section class="panel" id="step3b">
-      <div class="panel-head"><h2>改写建议</h2><span class="panel-desc">针对命中的信号给改写方向，不替你改（保留人工痕迹）</span></div>
-      <div id="rewriteBox"><div class="empty-note">先跑一次「开始检测」，这里会按信号给出定向改写建议</div></div>
-      <div class="action-row" style="margin-top:12px">
-        <button id="recheckBtn" class="primary" disabled>修改后复检（回炉）</button>
-      </div>
-    </section>
-
-    <section class="panel" id="step4">
-      <div class="panel-head"><h2>签约资格自查</h2><span class="panel-desc">手动勾选，硬性项未达标即判不通过</span></div>
-      <div id="checklist"></div>
-    </section>
-
-    <section class="panel" id="step5">
-      <div class="panel-head"><h2>AI 深度复核 <span class="tag">可选 · 自备 Key</span></h2><span class="panel-desc">BYOK：Key 只存本机，浏览器直调模型接口</span></div>
-      <div class="byok-grid">
-        <input id="apiEndpoint" placeholder="接口地址（默认 https://api.deepseek.com/v1）">
-        <input id="apiModel" placeholder="模型（默认 deepseek-chat）">
-        <input id="apiKey" type="password" placeholder="API Key（只存本机 localStorage）">
-        <div class="byok-actions">
-          <button id="saveKeyBtn" class="ghost">保存 Key 到本机</button>
-          <button id="deepBtn" class="primary">AI 深度复核（五维）</button>
-        </div>
-      </div>
-      <div id="deepResult"></div>
-    </section>
-
-    <!-- ============ 写作工作台（Phase 2b-1） ============ -->
-    <section class="panel write-panel" id="w-projects" hidden>
-      <div class="panel-head"><h2>我的作品</h2><span class="panel-desc">项目存本机浏览器，可导出 JSON 备份</span></div>
+      <div id="chTask" class="ch-task"></div>
+      <textarea id="writeArea" rows="14" placeholder="AI 生成的初稿会出现在这里，也可以直接手写……"></textarea>
       <div class="action-row">
-        <input id="newProjTitle" placeholder="新作品书名">
-        <button id="newProjBtn" class="primary">新建作品</button>
-        <button id="exportProjBtn" class="ghost">导出当前作品 JSON</button>
+        <span id="writeCount" class="muted">0 字</span>
+        <button id="reviewChBtn" class="ghost">🔍 章节评审（编辑视角）</button>
+        <button id="saveChBtn" class="primary">保存本章（自动更新记忆+过审）</button>
       </div>
-      <div id="projList" class="proj-list"></div>
+      <div id="writeReview"></div>
+      <div id="writeSigncheck"></div>
     </section>
 
-    <section class="panel write-panel" id="w-setting" hidden>
+    <section class="panel" id="w-setting" hidden>
       <div class="panel-head"><h2>设定</h2><span class="panel-desc">世界观 + 人物卡 = AI 写作的宪法地基</span></div>
       <div class="form-grid">
         <label>书名<input id="setTitle"></label>
@@ -527,7 +319,7 @@ body[data-mode="check"] .write-panel { display: none; }
       <div class="action-row"><button id="saveSettingBtn" class="primary">保存设定</button></div>
     </section>
 
-    <section class="panel write-panel" id="w-outline" hidden>
+    <section class="panel" id="w-outline" hidden>
       <div class="panel-head"><h2>大纲</h2><span class="panel-desc">卷 → 章 → 情节点；伏笔在此登记</span></div>
       <div class="action-row">
         <input id="newVolName" placeholder="卷名，如：第一卷 少年行">
@@ -539,25 +331,7 @@ body[data-mode="check"] .write-panel { display: none; }
       <div id="outlineCheckResult"></div>
     </section>
 
-    <section class="panel write-panel" id="w-write" hidden>
-      <div class="panel-head"><h2>写作</h2><span class="panel-desc">AI 生成初稿 → 人工改 → 保存即自动过审（写审一体）</span></div>
-      <div class="action-row">
-        <label>写第 <input id="writeChN" type="number" min="1" value="1" style="width:64px"> 章</label>
-        <button id="loadChBtn" class="ghost">载入本章任务</button>
-        <button id="genChBtn" class="primary">AI 生成初稿</button>
-      </div>
-      <div id="chTask" class="ch-task"></div>
-      <textarea id="writeArea" rows="14" placeholder="AI 生成的初稿会出现在这里，也可以直接手写……"></textarea>
-      <div class="action-row">
-        <span id="writeCount" class="muted">0 字</span>
-        <button id="reviewChBtn" class="ghost">🔍 章节评审（编辑视角）</button>
-        <button id="saveChBtn" class="primary">保存本章（自动更新记忆+过审）</button>
-      </div>
-      <div id="writeReview"></div>
-      <div id="writeSigncheck"></div>
-    </section>
-
-    <section class="panel write-panel" id="w-memory" hidden>
+    <section class="panel" id="w-memory" hidden>
       <div class="panel-head"><h2>长篇记忆</h2><span class="panel-desc">时间线 · 伏笔追踪 · SoloEnt.md 项目宪法</span></div>
       <div class="mem-cols">
         <div><h3>时间线</h3><div id="memTimeline"></div></div>
@@ -567,8 +341,82 @@ body[data-mode="check"] .write-panel { display: none; }
       <pre id="constPreview" class="const-preview"></pre>
     </section>
 
+    <!-- ============ 过审 ============ -->
+    <section class="panel" id="c-overview" hidden>
+      <div class="panel-head"><h2>过签管线</h2><span class="panel-desc">节点式流程：每个节点可单独重跑，点击节点跳转</span></div>
+      <div id="pipelineSteps" class="pipeline"></div>
+      <div id="pipelineSummary" class="pl-summary"></div>
+    </section>
+
+    <section class="panel" id="step3" hidden>
+      <div class="panel-head"><h2>粘贴正文并检测</h2><span class="panel-desc">建议至少前 3 章；起点建议前 10 章以便查水文</span></div>
+      <textarea id="inputText" rows="9" placeholder="在此粘贴小说正文……"></textarea>
+      <div class="action-row">
+        <span id="charCount" class="muted">0 字</span>
+        <button id="detectBtn" class="primary">开始检测</button>
+      </div>
+      <div id="result"></div>
+    </section>
+
+    <section class="panel" id="step3b" hidden>
+      <div class="panel-head"><h2>改写建议</h2><span class="panel-desc">针对命中的信号给改写方向，不替你改（保留人工痕迹）</span></div>
+      <div id="rewriteBox"><div class="empty-note">先跑一次「开始检测」，这里会按信号给出定向改写建议</div></div>
+      <div class="action-row" style="margin-top:12px">
+        <button id="recheckBtn" class="primary" disabled>修改后复检（回炉）</button>
+      </div>
+    </section>
+
+    <section class="panel" id="step1" hidden>
+      <div class="panel-head"><h2>选择目标平台</h2><span class="panel-desc">番茄签约前拒签"AI 粗制滥造"（最严）· 七猫人工编辑看开篇+AI 标注 · 起点治理"水文"</span></div>
+      <div id="platformCards" class="pcards"></div>
+    </section>
+
+    <section class="panel" id="step2" hidden>
+      <div class="panel-head"><h2>平台策略卡</h2><span class="panel-desc">先看规则再动笔</span></div>
+      <div id="policyCard"></div>
+    </section>
+
+    <section class="panel" id="step4" hidden>
+      <div class="panel-head"><h2>签约资格自查</h2><span class="panel-desc">手动勾选，硬性项未达标即判不通过</span></div>
+      <div id="checklist"></div>
+    </section>
+
+    <section class="panel" id="step5" hidden>
+      <div class="panel-head"><h2>AI 深度复核</h2><span class="panel-desc">BYOK 五维评分 · Key 只存本机（去「设置」配置）</span></div>
+      <div class="action-row">
+        <button id="deepBtn" class="primary">AI 深度复核（五维）</button>
+      </div>
+      <div id="deepResult"></div>
+    </section>
+
+    <!-- ============ 作品 ============ -->
+    <section class="panel" id="w-projects" hidden>
+      <div class="panel-head"><h2>我的作品</h2><span class="panel-desc">项目存本机浏览器，可导出 JSON 备份</span></div>
+      <div class="action-row">
+        <input id="newProjTitle" placeholder="新作品书名">
+        <button id="newProjBtn" class="primary">新建作品</button>
+        <button id="exportProjBtn" class="ghost">导出当前作品 JSON</button>
+      </div>
+      <div id="projList" class="proj-list"></div>
+    </section>
+
+    <!-- ============ 设置 ============ -->
+    <section class="panel" id="settingsPanel" hidden>
+      <div class="panel-head"><h2>设置</h2><span class="panel-desc">BYOK：Key 只存本机，浏览器直调模型接口</span></div>
+      <div class="byok-grid">
+        <input id="apiEndpoint" placeholder="接口地址（默认 https://api.deepseek.com/v1）">
+        <input id="apiModel" placeholder="模型（默认 deepseek-chat）">
+        <input id="apiKey" type="password" placeholder="API Key（只存本机 localStorage）">
+        <div class="byok-actions">
+          <button id="saveKeyBtn" class="ghost">保存 Key 到本机</button>
+        </div>
+      </div>
+      <h3>策略卡版本</h3>
+      <div id="policyVersions" class="muted">番茄 v2026.10.12 · 七猫 v2026.10.18 · 起点 v2026.10.16</div>
+    </section>
+
     <footer>
-      signcheck-novel-zh v0.6 · 过审管线（Phase 2a）+ 写作工作台（Phase 2b-1）· 策略卡带版本号，过期 90 天未更新会预警
+      墨判 v1.0 · 写审一体：写作工作台 + 过审管线 · 策略卡带版本号，过期 90 天未更新会预警
     </footer>
   </main>
 </div>
@@ -1885,7 +1733,6 @@ safeInit("platformCards", renderPlatformCards);
 safeInit("policyCard", renderPolicyCard);
 safeInit("checklist", renderChecklist);
 safeInit("byok", initBYOK);
-safeInit("stepNav", initStepNav);
 safeInit("pipeline", initPipeline);
 
 /* ================= 写作工作台（Phase 2b-1） ================= */
@@ -1896,32 +1743,28 @@ const getCreds = () => {
   return { key: s.key || "", endpoint: s.endpoint || "https://api.deepseek.com/v1", model: $("apiModel").value.trim() || "deepseek-chat" };
 };
 
-/* ---------- 模式切换 ---------- */
-function initModeSwitch() {
-  const setMode = (m) => {
-    document.body.dataset.mode = m;
-    $("modeCheck").classList.toggle("active", m === "check");
-    $("modeWrite").classList.toggle("active", m === "write");
-    $("stepNav").hidden = m !== "check";
-    $("writeNav").hidden = m !== "write";
+/* ---------- 侧边栏导航（墨判 v1.0） ---------- */
+function initSideNav() {
+  const showPanels = (ids) => {
+    const want = new Set(ids);
     document.querySelectorAll("main > section.panel").forEach(s => {
-      const isWrite = s.classList.contains("write-panel");
-      s.hidden = (m === "check") ? isWrite : !isWrite;
+      s.hidden = !want.has(s.id);
     });
-    if (m === "write") renderProjList();
   };
-  document.body.dataset.mode = "check";
-  $("modeCheck").onclick = () => setMode("check");
-  $("modeWrite").onclick = () => setMode("write");
-  document.querySelectorAll("#writeNav a").forEach(a => {
+  document.querySelectorAll("#sideNav a").forEach(a => {
     a.onclick = (e) => {
       e.preventDefault();
-      document.querySelectorAll("main > section.write-panel").forEach(s => s.hidden = true);
-      $(a.dataset.step).hidden = false;
-      if (a.dataset.step === "w-projects") renderProjList();
-      if (a.dataset.step === "w-memory") renderMemory();
+      document.querySelectorAll("#sideNav a").forEach(x => x.classList.remove("active"));
+      a.classList.add("active");
+      const ids = a.dataset.panels.split(",").map(s => s.trim());
+      showPanels(ids);
+      if (ids.includes("w-projects")) renderProjList();
+      if (ids.includes("w-memory")) renderMemory();
+      window.scrollTo({ top: 0 });
     };
   });
+  // 默认首页：写作
+  showPanels(["w-write"]);
 }
 
 /* ---------- 作品管理 ---------- */
@@ -2262,7 +2105,7 @@ function initMemory() {
   };
 }
 
-safeInit("modeSwitch", initModeSwitch);
+safeInit("sideNav", initSideNav);
 safeInit("wProjects", initProjects);
 safeInit("wSetting", initSetting);
 safeInit("wOutline", initOutline);
