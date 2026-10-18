@@ -368,6 +368,7 @@ footer {
       <textarea id="inputText" rows="9" placeholder="在此粘贴小说正文……"></textarea>
       <div class="action-row">
         <span id="charCount" class="muted">0 字</span>
+        <button id="demoTextBtn" class="ghost">填入示例文本</button>
         <button id="detectBtn" class="primary">开始检测</button>
       </div>
       <div id="result"></div>
@@ -410,6 +411,7 @@ footer {
       <div class="action-row">
         <input id="newProjTitle" placeholder="新作品书名">
         <button id="newProjBtn" class="primary">新建作品</button>
+        <button id="demoProjBtn" class="ghost">📖 载入示例作品</button>
         <button id="exportProjBtn" class="ghost">导出当前作品 JSON</button>
       </div>
       <div id="projList" class="proj-list"></div>
@@ -1380,6 +1382,66 @@ ${content.slice(0, 8000)}
  "suggestions": ["优化建议1", "建议2"]}`;
 }
 
+// ---------- 示例作品（一键铺满各模块） ----------
+function createDemoProject() {
+  const p = createProject("剑啸江湖（示例）");
+  p.genre = "武侠·复仇流";
+  p.platform = "qidian";
+  p.worldview = {
+    era: "架空王朝，大梁年间，武林与朝堂并立",
+    power_system: "内功境界：三流/二流/一流/后天/先天，剑法分九品",
+    factions: "青城剑派（名门正）、黑水帮（邪）、锦衣卫（朝廷）",
+    rules: "内力需童子功打底，剑意通玄者可越境杀敌",
+  };
+  p.characters = [
+    { name: "沈砚", role: "主角", traits: "隐忍、重诺", goal: "查清灭门真相", status: "青城弃徒，三流内功", arc: "复仇→明悟→立派" },
+    { name: "苏晚晴", role: "女主", traits: "机敏、嘴硬心软", goal: "寻回失传剑谱", status: "苏家大小姐，二流高手", arc: "利用→并肩" },
+    { name: "黑水蛟", role: "反派", traits: "阴狠、多疑", goal: "一统黑道", status: "黑水帮主，先天境", arc: "膨胀→败亡" },
+  ];
+  p.outline = [
+    { volume: "第一卷 血色青城", summary: "灭门之夜，沈砚逃出生天", chapters: [
+      { n: 1, title: "灭门", beats: "青城一夜被灭，沈砚被师父拼死送出", pov: "沈砚", plant: ["断剑上的指印"], payoff: [], hook: "悬念" },
+      { n: 2, title: "黑水镇", beats: "沈砚流落黑水镇，遇苏晚晴", pov: "沈砚", plant: ["苏晚晴的剑谱残页"], payoff: [], hook: "冲突" },
+      { n: 3, title: "指印之主", beats: "断剑指印指向黑水帮", pov: "沈砚", plant: [], payoff: ["断剑上的指印"], hook: "反转" },
+    ]},
+    { volume: "第二卷 剑指黑水", summary: "潜入黑水帮查真相", chapters: [
+      { n: 4, title: "投名状", beats: "沈砚混入黑水帮", pov: "沈砚", plant: ["锦衣卫的密令"], payoff: [], hook: "悬念" },
+      { n: 5, title: "夜探", beats: "夜探帮主密室，发现当年真相一角", pov: "沈砚", plant: [], payoff: [], hook: "冲突" },
+    ]},
+  ];
+  p.chapters = {
+    1: { content: "（示例章节正文略）", summary: "青城被灭，沈砚逃出", signcheck: { verdict: "review", density: 2.1 }, review: { score: 78, verdict: "需修改" } },
+    2: { content: "（示例章节正文略）", summary: "黑水镇初遇苏晚晴", signcheck: { verdict: "pass", density: 1.2 }, review: { score: 85, verdict: "通过" } },
+  };
+  p.memory = {
+    last_chapter: 2,
+    timeline: ["第1章：青城被灭，沈砚逃出", "第2章：黑水镇初遇苏晚晴"],
+    foreshadows: [
+      { id: "F1", desc: "断剑上的指印", planted_ch: 1, payoff_ch: 3, status: "已收", expect: [2, 5] },
+      { id: "F2", desc: "苏晚晴的剑谱残页", planted_ch: 2, payoff_ch: null, status: "未收", expect: [5, 12] },
+      { id: "F3", desc: "锦衣卫的密令", planted_ch: 4, payoff_ch: null, status: "未收", expect: [8, 15] },
+    ],
+    chapter_summaries: [
+      { n: 1, summary: "青城被灭，沈砚逃出" },
+      { n: 2, summary: "黑水镇初遇苏晚晴" },
+    ],
+  };
+  return p;
+}
+
+// ---------- 检测示例文本（AI 味明显，一测就有结果） ----------
+const DEMO_DETECT_TEXT = `他握紧了拳头。他咬紧了牙关。他一步踏出。
+
+风仿佛刀子一样刮在脸上，疼得他倒吸一口凉气。他的心跳就像打鼓一样，咚咚咚地响。
+
+他感到无比的愤怒，心中充满了屈辱。他发誓，一定要让那些看不起他的人付出代价。
+
+"三十年河东，三十年河西，"他一字一句地说道，"莫欺少年穷！"
+
+说完，他转身离去。背影坚定。步伐稳健。眼神锐利。
+
+夜色渐深。月光如水。万籁俱寂。`;
+
 const $ = (id) => document.getElementById(id);
 let selectedPlatform = "fanqie";
 
@@ -1587,6 +1649,10 @@ function runDetection() {
 }
 
 $("detectBtn").onclick = runDetection;
+$("demoTextBtn").onclick = () => {
+  $("inputText").value = DEMO_DETECT_TEXT;
+  $("charCount").textContent = `${DEMO_DETECT_TEXT.length} 字`;
+};
 $("recheckBtn").onclick = () => {
   // 回炉：用修改后的正文重跑检测
   runDetection();
@@ -1823,6 +1889,15 @@ function initProjects() {
     saveProject(p);
     $("newProjTitle").value = "";
     openProject(t);
+  };
+  // 载入示例作品（一键铺满各模块）
+  $("demoProjBtn").onclick = () => {
+    const p = createDemoProject();
+    const all = loadAllProjects();
+    all[p.title] = p;
+    saveProject(p);
+    openProject(p.title);
+    alert("示例作品《剑啸江湖》已载入：设定/大纲/记忆/伏笔全有，可逐个模块查看");
   };
   $("exportProjBtn").onclick = () => {
     if (!curProj) { alert("先打开一个作品"); return; }
