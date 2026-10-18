@@ -256,8 +256,14 @@ export function analyze(text, platform = null) {
     let verdict = "pass";
     const reasons = [];
     if (dens >= prof.tell_fail) {
-      verdict = "fail";
-      reasons.push(`AI 腔信号密度 ${dens}/千字 ≥ ${prof.tell_fail}（${prof.label}）`);
+      // v0.5.1：短文本下"每千字密度"会被少量命中放大；fail 需绝对命中数≥8，否则降级 review（防误伤真人）
+      if (totalHits >= 8) {
+        verdict = "fail";
+        reasons.push(`AI 腔信号密度 ${dens}/千字 ≥ ${prof.tell_fail}（${prof.label}）`);
+      } else {
+        verdict = "review";
+        reasons.push(`AI 腔信号密度 ${dens}/千字达 fail 线，但总命中仅 ${totalHits} 次（<8），短文本降级为 review`);
+      }
     } else if (dens >= prof.tell_warn) {
       verdict = "review";
       reasons.push(`AI 腔信号密度 ${dens}/千字，达预警线`);

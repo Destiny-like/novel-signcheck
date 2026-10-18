@@ -295,9 +295,15 @@ def analyze(text, platform=None):
         dens = result["signal_density_per_1k"]
         verdict, reasons = "pass", []
         if dens >= prof["tell_fail"]:
-            verdict = "fail"
-            reasons.append("AI 腔信号密度 %.1f/千字 ≥ %d（%s）"
-                           % (dens, prof["tell_fail"], prof["label"]))
+            # v0.5.1：短文本下密度会被少量命中放大；fail 需绝对命中数≥8，否则降级 review（防误伤真人）
+            if total_hits >= 8:
+                verdict = "fail"
+                reasons.append("AI 腔信号密度 %.1f/千字 ≥ %d（%s）"
+                               % (dens, prof["tell_fail"], prof["label"]))
+            else:
+                verdict = "review"
+                reasons.append("AI 腔信号密度 %.1f/千字达 fail 线，但总命中仅 %d 次（<8），短文本降级为 review"
+                               % (dens, total_hits))
         elif dens >= prof["tell_warn"]:
             verdict = "review"
             reasons.append("AI 腔信号密度 %.1f/千字，达预警线" % dens)
