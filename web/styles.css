@@ -351,3 +351,35 @@ footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top
 
 /* ---------- 策略卡来源标注 ---------- */
 .pol-src { font-size: 12px; color: var(--text-3); margin: 8px 0; padding: 6px 10px; background: var(--surface-2); border-radius: 6px; }
+
+/* ============ 写作工作台（Phase 2b-1） ============ */
+.mode-switch { display: inline-flex; gap: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 3px; margin-right: 10px; }
+.mode-btn { border: 0; background: transparent; color: var(--muted); padding: 6px 12px; border-radius: 7px; cursor: pointer; font-size: 13px; }
+.mode-btn.active { background: var(--accent); color: #fff; }
+.mode-btn .tag { font-size: 10px; opacity: .8; margin-left: 4px; }
+body[data-mode="write"] .check-panel { display: none; }
+body[data-mode="write"] .write-panel { display: block; }
+body[data-mode="check"] .write-panel { display: none; }
+.proj-list { display: grid; gap: 8px; margin-top: 12px; }
+.proj-card { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+.proj-card .t { font-weight: 600; }
+.proj-card .m { color: var(--muted); font-size: 12px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+.form-grid input, .form-grid textarea, .form-grid select { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; color: var(--text); font-size: 14px; }
+.char-card { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin: 8px 0; }
+.char-card .form-grid { margin: 6px 0; }
+.vol-block { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin: 10px 0; }
+.vol-block h4 { margin: 0 0 8px; }
+.ch-row { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px dashed var(--border); font-size: 13px; }
+.ch-row input { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; color: var(--text); font-size: 13px; }
+.ch-row .n { width: 44px; } .ch-row .tt { flex: 2; } .ch-row .bt { flex: 3; }
+.ch-task { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin: 10px 0; font-size: 13px; }
+.ch-task b { color: var(--accent); }
+#writeArea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; color: var(--text); font-size: 15px; line-height: 1.8; margin-top: 10px; }
+.mem-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.const-preview { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; max-height: 320px; overflow: auto; font-size: 12.5px; line-height: 1.7; white-space: pre-wrap; }
+.ghost.sm { padding: 3px 10px; font-size: 12px; }
+.verdict-pass { color: #3fb950; font-weight: 700; }
+.verdict-review { color: #d29922; font-weight: 700; }
+.verdict-fail { color: #f85149; font-weight: 700; }

@@ -359,6 +359,38 @@ footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top
 /* ---------- 策略卡来源标注 ---------- */
 .pol-src { font-size: 12px; color: var(--text-3); margin: 8px 0; padding: 6px 10px; background: var(--surface-2); border-radius: 6px; }
 
+/* ============ 写作工作台（Phase 2b-1） ============ */
+.mode-switch { display: inline-flex; gap: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 3px; margin-right: 10px; }
+.mode-btn { border: 0; background: transparent; color: var(--muted); padding: 6px 12px; border-radius: 7px; cursor: pointer; font-size: 13px; }
+.mode-btn.active { background: var(--accent); color: #fff; }
+.mode-btn .tag { font-size: 10px; opacity: .8; margin-left: 4px; }
+body[data-mode="write"] .check-panel { display: none; }
+body[data-mode="write"] .write-panel { display: block; }
+body[data-mode="check"] .write-panel { display: none; }
+.proj-list { display: grid; gap: 8px; margin-top: 12px; }
+.proj-card { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+.proj-card .t { font-weight: 600; }
+.proj-card .m { color: var(--muted); font-size: 12px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+.form-grid input, .form-grid textarea, .form-grid select { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; color: var(--text); font-size: 14px; }
+.char-card { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin: 8px 0; }
+.char-card .form-grid { margin: 6px 0; }
+.vol-block { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin: 10px 0; }
+.vol-block h4 { margin: 0 0 8px; }
+.ch-row { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px dashed var(--border); font-size: 13px; }
+.ch-row input { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; color: var(--text); font-size: 13px; }
+.ch-row .n { width: 44px; } .ch-row .tt { flex: 2; } .ch-row .bt { flex: 3; }
+.ch-task { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin: 10px 0; font-size: 13px; }
+.ch-task b { color: var(--accent); }
+#writeArea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; color: var(--text); font-size: 15px; line-height: 1.8; margin-top: 10px; }
+.mem-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.const-preview { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; max-height: 320px; overflow: auto; font-size: 12.5px; line-height: 1.7; white-space: pre-wrap; }
+.ghost.sm { padding: 3px 10px; font-size: 12px; }
+.verdict-pass { color: #3fb950; font-weight: 700; }
+.verdict-review { color: #d29922; font-weight: 700; }
+.verdict-fail { color: #f85149; font-weight: 700; }
+
 </style>
 </head>
 <body>
@@ -370,9 +402,13 @@ footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top
       <div class="brand-name">签约前自查</div>
       <div class="brand-sub">网文投稿模拟考</div>
     </div>
-    <span class="ver-badge">v0.5</span>
+    <span class="ver-badge">v0.6</span>
   </div>
   <div class="topbar-right">
+    <div class="mode-switch">
+      <button id="modeCheck" class="mode-btn active">过审工作台</button>
+      <button id="modeWrite" class="mode-btn">写作工作台<span class="tag">2b-1</span></button>
+    </div>
     <span class="policy-mini">番茄 v2026.10.12 · 七猫 v2026.10.16 · 起点 v2026.10.16</span>
     <button id="themeToggle" class="icon-btn" title="切换浅色/深色">◐</button>
   </div>
@@ -387,6 +423,13 @@ footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top
       <a href="#step3b" data-step="step3b"><span class="n">4</span><span class="t"><b>改写建议</b><i>按信号定向返工</i></span></a>
       <a href="#step4" data-step="step4"><span class="n">5</span><span class="t"><b>资格自查</b><i>硬性门槛核对</i></span></a>
       <a href="#step5" data-step="step5"><span class="n">6</span><span class="t"><b>深度复核</b><i>BYOK · 五维评分</i></span></a>
+    </nav>
+    <nav id="writeNav" hidden>
+      <a href="#w-projects" data-step="w-projects"><span class="n">📚</span><span class="t"><b>我的作品</b><i>新建·打开·导出</i></span></a>
+      <a href="#w-setting" data-step="w-setting"><span class="n">⚙</span><span class="t"><b>设定</b><i>世界观·人物卡</i></span></a>
+      <a href="#w-outline" data-step="w-outline"><span class="n">🗺</span><span class="t"><b>大纲</b><i>卷·章·情节点</i></span></a>
+      <a href="#w-write" data-step="w-write"><span class="n">✍</span><span class="t"><b>写作</b><i>AI 生成·人工改</i></span></a>
+      <a href="#w-memory" data-step="w-memory"><span class="n">🧠</span><span class="t"><b>记忆</b><i>时间线·伏笔</i></span></a>
     </nav>
     <div class="side-foot">
       <div class="side-foot-title">检测说明</div>
@@ -448,8 +491,79 @@ footer { text-align: center; color: var(--text-3); font-size: 11.5px; margin-top
       <div id="deepResult"></div>
     </section>
 
+    <!-- ============ 写作工作台（Phase 2b-1） ============ -->
+    <section class="panel write-panel" id="w-projects" hidden>
+      <div class="panel-head"><h2>我的作品</h2><span class="panel-desc">项目存本机浏览器，可导出 JSON 备份</span></div>
+      <div class="action-row">
+        <input id="newProjTitle" placeholder="新作品书名">
+        <button id="newProjBtn" class="primary">新建作品</button>
+        <button id="exportProjBtn" class="ghost">导出当前作品 JSON</button>
+      </div>
+      <div id="projList" class="proj-list"></div>
+    </section>
+
+    <section class="panel write-panel" id="w-setting" hidden>
+      <div class="panel-head"><h2>设定</h2><span class="panel-desc">世界观 + 人物卡 = AI 写作的宪法地基</span></div>
+      <div class="form-grid">
+        <label>书名<input id="setTitle"></label>
+        <label>题材<input id="setGenre" placeholder="如：东方玄幻·废柴流"></label>
+        <label>目标平台
+          <select id="setPlatform">
+            <option value="fanqie">番茄小说</option>
+            <option value="qimao">七猫中文网</option>
+            <option value="qidian">起点中文网</option>
+          </select>
+        </label>
+      </div>
+      <h3>世界观</h3>
+      <div class="form-grid">
+        <label>时代背景<textarea id="wvEra" rows="2"></textarea></label>
+        <label>力量体系<textarea id="wvPower" rows="2"></textarea></label>
+        <label>主要势力<textarea id="wvFactions" rows="2"></textarea></label>
+        <label>世界规则<textarea id="wvRules" rows="2"></textarea></label>
+      </div>
+      <h3>人物卡 <button id="addCharBtn" class="ghost sm">+ 加人物</button></h3>
+      <div id="charList"></div>
+      <div class="action-row"><button id="saveSettingBtn" class="primary">保存设定</button></div>
+    </section>
+
+    <section class="panel write-panel" id="w-outline" hidden>
+      <div class="panel-head"><h2>大纲</h2><span class="panel-desc">卷 → 章 → 情节点；伏笔在此登记</span></div>
+      <div class="action-row">
+        <input id="newVolName" placeholder="卷名，如：第一卷 少年行">
+        <button id="addVolBtn" class="ghost">+ 加卷</button>
+      </div>
+      <div id="outlineList"></div>
+    </section>
+
+    <section class="panel write-panel" id="w-write" hidden>
+      <div class="panel-head"><h2>写作</h2><span class="panel-desc">AI 生成初稿 → 人工改 → 保存即自动过审（写审一体）</span></div>
+      <div class="action-row">
+        <label>写第 <input id="writeChN" type="number" min="1" value="1" style="width:64px"> 章</label>
+        <button id="loadChBtn" class="ghost">载入本章任务</button>
+        <button id="genChBtn" class="primary">AI 生成初稿</button>
+      </div>
+      <div id="chTask" class="ch-task"></div>
+      <textarea id="writeArea" rows="14" placeholder="AI 生成的初稿会出现在这里，也可以直接手写……"></textarea>
+      <div class="action-row">
+        <span id="writeCount" class="muted">0 字</span>
+        <button id="saveChBtn" class="primary">保存本章（自动更新记忆+过审）</button>
+      </div>
+      <div id="writeSigncheck"></div>
+    </section>
+
+    <section class="panel write-panel" id="w-memory" hidden>
+      <div class="panel-head"><h2>长篇记忆</h2><span class="panel-desc">时间线 · 伏笔追踪 · SoloEnt.md 项目宪法</span></div>
+      <div class="mem-cols">
+        <div><h3>时间线</h3><div id="memTimeline"></div></div>
+        <div><h3>伏笔</h3><div id="memForeshadow"></div></div>
+      </div>
+      <h3>SoloEnt.md 预览 <button id="copyConstBtn" class="ghost sm">复制</button></h3>
+      <pre id="constPreview" class="const-preview"></pre>
+    </section>
+
     <footer>
-      signcheck-novel-zh v0.5 · 过签管线（Phase 2a）· 策略卡带版本号，过期 90 天未更新会预警
+      signcheck-novel-zh v0.6 · 过审管线（Phase 2a）+ 写作工作台（Phase 2b-1）· 策略卡带版本号，过期 90 天未更新会预警
     </footer>
   </main>
 </div>
@@ -1094,6 +1208,157 @@ function renderRewriteTips(signals, repetitionCount) {
   <p class="rw-note">按建议改完后，在上方正文框修改文本，点「修改后复检」回炉重测；也可以直接用 BYOK 让模型按这些方向改写（Key 只走你的模型账户）。</p>`;
 }
 
+/* 写作侧核心：项目数据模型 + SoloEnt.md 宪法 + prompt 组装 + BYOK 调用
+* Phase 2b-1：设定驱动（W1）+ 长篇记忆（W2）+ 写审一体（W6）
+*/
+
+// ---------- 项目模型 ----------
+function createProject(title = "未命名作品") {
+return {
+version: 1,
+title,
+genre: "",
+platform: "fanqie",
+worldview: { era: "", power_system: "", factions: "", rules: ""},
+characters: [],
+outline: [],
+memory: {
+timeline: [],
+foreshadows: [],
+chapter_summaries: [],
+last_chapter: 0,
+},
+chapters: {},
+};
+}
+
+// ---------- SoloEnt.md 项目宪法 ----------
+function buildConstitution(p) {
+const L = [];
+L.push(`# ${p.title} · 项目宪法（SoloEnt.md）`);
+L.push(`> AI 写作时必须遵守本文设定。前后矛盾时以本文为准。`);
+L.push(``);
+L.push(`## 世界观`);
+L.push(`- 时代背景：${p.worldview.era || "（未填）"}`);
+L.push(`- 力量体系：${p.worldview.power_system || "（未填）"}`);
+L.push(`- 主要势力：${p.worldview.factions || "（未填）"}`);
+L.push(`- 世界规则：${p.worldview.rules || "（未填）"}`);
+L.push(``);
+L.push(`## 人物（${p.characters.length}）`);
+for (const c of p.characters) {
+L.push(`### ${c.name}（${c.role || "？"}）`);
+L.push(`- 性格：${c.traits || "？"}｜目标：${c.goal || "？"}`);
+L.push(`- 当前状态：${c.status || "？"}｜成长线：${c.arc || "？"}`);
+}
+L.push(``);
+L.push(`## 时间线（已写 ${p.memory.last_chapter} 章）`);
+for (const t of p.memory.timeline) L.push(`- ${t}`);
+if (!p.memory.timeline.length) L.push(`- （暂无）`);
+L.push(``);
+L.push(`## 伏笔追踪`);
+for (const f of p.memory.foreshadows) {
+L.push(`- [${f.id}] ${f.desc}｜埋于第${f.planted_ch}章｜${f.status === "已收"? `收于第${f.payoff_ch}章`: "**未收**"}`);
+}
+if (!p.memory.foreshadows.length) L.push(`- （暂无）`);
+L.push(``);
+L.push(`## 章节摘要`);
+for (const s of p.memory.chapter_summaries) L.push(`- 第${s.n}章：${s.summary}`);
+if (!p.memory.chapter_summaries.length) L.push(`- （暂无）`);
+return L.join("\n");
+}
+
+// ---------- 写作 prompt ----------
+function buildChapterPrompt(p, chN) {
+const ch = findChapter(p, chN);
+const constitution = buildConstitution(p);
+return `你是网文写手，正在写《${p.title}》（${p.genre || "长篇小说"}）第 ${chN} 章。
+
+
+${constitution}
+
+
+- 章节标题：${ch? ch.title: "（未定）"}
+- 情节点：${ch? ch.beats: "（未定，请根据宪法和上一章自然推进）"}
+- 视角人物：${ch && ch.pov? ch.pov: "主角"}
+${ch && ch.plant && ch.plant.length? `- 本章要埋的伏笔：${ch.plant.join("、")}`: ""}
+${ch && ch.payoff && ch.payoff.length? `- 本章要收的伏笔：${ch.payoff.join("、")}`: ""}
+
+
+1. 1500–2500 字，直接输出正文，不要大纲不要解释
+2. 人物言行必须符合宪法中的性格与当前状态，不得ooc
+3. 不得引入宪法之外的新设定、新人物、新能力
+4. 章末留一个钩子（悬念/冲突/反转三选一）
+5. 语言要求：少用排比三连，少用"仿佛/就像"式比喻，避免AI腔`;
+}
+
+function buildSummaryPrompt(p, chN, content) {
+return `你是网文编辑。请把下面《${p.title}》第 ${chN} 章正文压缩成 80 字以内的一句话摘要，并列出本章新埋的伏笔（没有就写"无"）。
+
+正文：
+${content.slice(0, 6000)}
+
+请严格按以下 JSON 输出（不要其他内容）：
+{"summary": "一句话摘要", "new_foreshadows": ["伏笔1", "伏笔2"]}`;
+}
+
+// ---------- 工具 ----------
+function findChapter(p, n) {
+for (const vol of p.outline)
+for (const ch of vol.chapters || [])
+if (ch.n === n) return ch;
+return null;
+}
+
+function nextChapterN(p) {
+return p.memory.last_chapter + 1;
+}
+
+// ---------- BYOK 调用（凭证由主模块从 signcheck_byok 传入） ----------
+export async function callLLM(prompt, creds = {}, opts = {}) {
+const endpoint = (creds.endpoint || "https://api.deepseek.com/v1").replace(/\/$/, "");
+const model = creds.model || "deepseek-chat";
+const key = creds.key || "";
+if (!key) throw new Error("未设置 API Key，请先在「过审→深度复核」里保存 Key（只存本机）");
+const resp = await fetch(`${endpoint}/chat/completions`, {
+method: "POST",
+headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}`},
+body: JSON.stringify({
+model,
+messages: [{ role: "user", content: prompt}],
+temperature: opts.temperature?? 0.8,
+}),
+});
+if (!resp.ok) throw new Error(`模型接口 ${resp.status}`);
+const data = await resp.json();
+return data.choices[0].message.content;
+}
+
+// ---------- 本地存储（写作项目独立命名空间，localStorage 不可用时降级内存） ----------
+const LS_KEY = "sc_projects_v1";
+const memFallback = {};
+function lsGet(k) {
+try { return localStorage.getItem(k);}
+catch { return k in memFallback? memFallback[k]: null;}
+}
+function lsSet(k, v) {
+try { localStorage.setItem(k, v);}
+catch { memFallback[k] = String(v);}
+}
+function saveProject(p) {
+const all = loadAllProjects();
+all[p.title] = p;
+lsSet(LS_KEY, JSON.stringify(all));
+}
+function loadAllProjects() {
+try { return JSON.parse(lsGet(LS_KEY) || "{}");}
+catch { return {};}
+}
+function deleteProject(title) {
+const all = loadAllProjects();
+delete all[title];
+lsSet(LS_KEY, JSON.stringify(all));
+}
+
 const $ = (id) => document.getElementById(id);
 let selectedPlatform = "fanqie";
 
@@ -1464,6 +1729,295 @@ safeInit("checklist", renderChecklist);
 safeInit("byok", initBYOK);
 safeInit("stepNav", initStepNav);
 safeInit("pipeline", initPipeline);
+
+/* ================= 写作工作台（Phase 2b-1） ================= */
+
+let curProj = null;
+const getCreds = () => {
+  const s = loadBYOK();
+  return { key: s.key || "", endpoint: s.endpoint || "https://api.deepseek.com/v1", model: $("apiModel").value.trim() || "deepseek-chat" };
+};
+
+/* ---------- 模式切换 ---------- */
+function initModeSwitch() {
+  const setMode = (m) => {
+    document.body.dataset.mode = m;
+    $("modeCheck").classList.toggle("active", m === "check");
+    $("modeWrite").classList.toggle("active", m === "write");
+    $("stepNav").hidden = m !== "check";
+    $("writeNav").hidden = m !== "write";
+    document.querySelectorAll("main > section.panel").forEach(s => {
+      const isWrite = s.classList.contains("write-panel");
+      s.hidden = (m === "check") ? isWrite : !isWrite;
+    });
+    if (m === "write") renderProjList();
+  };
+  document.body.dataset.mode = "check";
+  $("modeCheck").onclick = () => setMode("check");
+  $("modeWrite").onclick = () => setMode("write");
+  document.querySelectorAll("#writeNav a").forEach(a => {
+    a.onclick = (e) => {
+      e.preventDefault();
+      document.querySelectorAll("main > section.write-panel").forEach(s => s.hidden = true);
+      $(a.dataset.step).hidden = false;
+      if (a.dataset.step === "w-projects") renderProjList();
+      if (a.dataset.step === "w-memory") renderMemory();
+    };
+  });
+}
+
+/* ---------- 作品管理 ---------- */
+function renderProjList() {
+  const all = loadAllProjects();
+  const box = $("projList");
+  const names = Object.keys(all);
+  if (!names.length) { box.innerHTML = `<div class="empty-note">还没有作品，上面新建一本开始写</div>`; return; }
+  box.innerHTML = names.map(n => {
+    const p = all[n];
+    return `<div class="proj-card">
+      <div><div class="t">${esc(n)}</div>
+      <div class="m">${esc(p.genre || "未设题材")} · 已写 ${p.memory.last_chapter} 章 · ${p.characters.length} 人物</div></div>
+      <div>
+        <button class="ghost sm" data-open="${esc(n)}">打开</button>
+        <button class="ghost sm" data-del="${esc(n)}">删除</button>
+      </div>
+    </div>`;
+  }).join("");
+  box.querySelectorAll("[data-open]").forEach(b => b.onclick = () => openProject(b.dataset.open));
+  box.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+    if (confirm(`删除《${b.dataset.del}》？本机数据将清空`)) { deleteProject(b.dataset.del); if (curProj?.title === b.dataset.del) curProj = null; renderProjList(); }
+  });
+}
+function openProject(name) {
+  curProj = loadAllProjects()[name];
+  if (!curProj) return;
+  fillSettingForm();
+  renderOutline();
+  $("writeChN").value = nextChapterN(curProj);
+  alert(`已打开《${name}》`);
+  document.querySelector('[data-step="w-setting"]').click();
+}
+function initProjects() {
+  $("newProjBtn").onclick = () => {
+    const t = $("newProjTitle").value.trim();
+    if (!t) { alert("先填书名"); return; }
+    const all = loadAllProjects();
+    if (all[t]) { alert("同名作品已存在"); return; }
+    const p = createProject(t);
+    saveProject(p);
+    $("newProjTitle").value = "";
+    openProject(t);
+  };
+  $("exportProjBtn").onclick = () => {
+    if (!curProj) { alert("先打开一个作品"); return; }
+    const blob = new Blob([JSON.stringify(curProj, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${curProj.title}.json`;
+    a.click();
+  };
+}
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ---------- 设定编辑器 ---------- */
+function fillSettingForm() {
+  if (!curProj) return;
+  $("setTitle").value = curProj.title;
+  $("setGenre").value = curProj.genre || "";
+  $("setPlatform").value = curProj.platform || "fanqie";
+  $("wvEra").value = curProj.worldview.era || "";
+  $("wvPower").value = curProj.worldview.power_system || "";
+  $("wvFactions").value = curProj.worldview.factions || "";
+  $("wvRules").value = curProj.worldview.rules || "";
+  renderCharList();
+}
+function renderCharList() {
+  const box = $("charList");
+  box.innerHTML = curProj.characters.map((c, i) => `
+    <div class="char-card">
+      <div class="form-grid">
+        <label>姓名<input data-ci="${i}" data-k="name" value="${esc(c.name)}"></label>
+        <label>定位<input data-ci="${i}" data-k="role" value="${esc(c.role)}" placeholder="主角/配角/反派"></label>
+        <label>性格<input data-ci="${i}" data-k="traits" value="${esc(c.traits)}"></label>
+        <label>目标<input data-ci="${i}" data-k="goal" value="${esc(c.goal)}"></label>
+        <label>当前状态<input data-ci="${i}" data-k="status" value="${esc(c.status)}"></label>
+        <label>成长线<input data-ci="${i}" data-k="arc" value="${esc(c.arc)}"></label>
+      </div>
+      <button class="ghost sm" data-delchar="${i}">删除</button>
+    </div>`).join("");
+  box.querySelectorAll("[data-ci]").forEach(inp => inp.onchange = () => {
+    curProj.characters[+inp.dataset.ci][inp.dataset.k] = inp.value;
+  });
+  box.querySelectorAll("[data-delchar]").forEach(b => b.onclick = () => {
+    curProj.characters.splice(+b.dataset.delchar, 1);
+    saveProject(curProj); renderCharList();
+  });
+}
+function initSetting() {
+  $("addCharBtn").onclick = () => {
+    if (!curProj) { alert("先新建/打开作品"); return; }
+    curProj.characters.push({ name: "", role: "", traits: "", goal: "", status: "", arc: "" });
+    renderCharList();
+  };
+  $("saveSettingBtn").onclick = () => {
+    if (!curProj) { alert("先新建/打开作品"); return; }
+    curProj.genre = $("setGenre").value.trim();
+    curProj.platform = $("setPlatform").value;
+    curProj.worldview = {
+      era: $("wvEra").value.trim(), power_system: $("wvPower").value.trim(),
+      factions: $("wvFactions").value.trim(), rules: $("wvRules").value.trim(),
+    };
+    saveProject(curProj);
+    alert("设定已保存");
+  };
+}
+
+/* ---------- 大纲编辑器 ---------- */
+function renderOutline() {
+  const box = $("outlineList");
+  if (!curProj) { box.innerHTML = `<div class="empty-note">先新建/打开作品</div>`; return; }
+  box.innerHTML = curProj.outline.map((vol, vi) => `
+    <div class="vol-block">
+      <h4>${esc(vol.volume || `第${vi + 1}卷`)} <button class="ghost sm" data-addch="${vi}">+ 加章</button></h4>
+      ${(vol.chapters || []).map((ch, ci) => `
+        <div class="ch-row">
+          <input class="n" data-vi="${vi}" data-ci="${ci}" data-k="n" type="number" value="${ch.n}" title="章节号">
+          <input class="tt" data-vi="${vi}" data-ci="${ci}" data-k="title" value="${esc(ch.title)}" placeholder="章节标题">
+          <input class="bt" data-vi="${vi}" data-ci="${ci}" data-k="beats" value="${esc(ch.beats)}" placeholder="情节点（一句话）">
+        </div>`).join("")}
+    </div>`).join("");
+  box.querySelectorAll("[data-addch]").forEach(b => b.onclick = () => {
+    const vol = curProj.outline[+b.dataset.addch];
+    const maxN = Math.max(0, ...curProj.outline.flatMap(v => (v.chapters || []).map(c => c.n || 0)));
+    vol.chapters.push({ n: maxN + 1, title: "", beats: "", pov: "", plant: [], payoff: [] });
+    saveProject(curProj); renderOutline();
+  });
+  box.querySelectorAll(".ch-row input").forEach(inp => inp.onchange = () => {
+    const ch = curProj.outline[+inp.dataset.vi].chapters[+inp.dataset.ci];
+    ch[inp.dataset.k] = inp.dataset.k === "n" ? +inp.value : inp.value;
+    saveProject(curProj);
+  });
+}
+function initOutline() {
+  $("addVolBtn").onclick = () => {
+    if (!curProj) { alert("先新建/打开作品"); return; }
+    const name = $("newVolName").value.trim() || `第${curProj.outline.length + 1}卷`;
+    curProj.outline.push({ volume: name, summary: "", chapters: [] });
+    $("newVolName").value = "";
+    saveProject(curProj); renderOutline();
+  };
+}
+
+/* ---------- 写作区 ---------- */
+function initWriting() {
+  $("writeArea").oninput = () => $("writeCount").textContent = `${$("writeArea").value.length} 字`;
+  $("loadChBtn").onclick = () => {
+    if (!curProj) { alert("先新建/打开作品"); return; }
+    const n = +$("writeChN").value;
+    const ch = findChapter(curProj, n);
+    const saved = curProj.chapters[n];
+    $("chTask").innerHTML = ch
+      ? `<b>第 ${n} 章 · ${esc(ch.title)}</b><br>情节点：${esc(ch.beats || "（未填）")}<br>视角：${esc(ch.pov || "主角")}`
+      : `<b>第 ${n} 章</b>（大纲里没这章，将按宪法自由发挥）`;
+    if (saved?.content) { $("writeArea").value = saved.content; $("writeCount").textContent = `${saved.content.length} 字`; }
+  };
+  $("genChBtn").onclick = async () => {
+    if (!curProj) { alert("先新建/打开作品"); return; }
+    const n = +$("writeChN").value;
+    $("genChBtn").disabled = true;
+    $("genChBtn").textContent = "生成中…";
+    try {
+      const text = await callLLM(buildChapterPrompt(curProj, n), getCreds(), { temperature: 0.8 });
+      $("writeArea").value = text.trim();
+      $("writeCount").textContent = `${$("writeArea").value.length} 字`;
+    } catch (e) { alert("生成失败：" + e.message); }
+    $("genChBtn").disabled = false;
+    $("genChBtn").textContent = "AI 生成初稿";
+  };
+  $("saveChBtn").onclick = saveChapter;
+}
+
+async function saveChapter() {
+  if (!curProj) { alert("先新建/打开作品"); return; }
+  const n = +$("writeChN").value;
+  const content = $("writeArea").value.trim();
+  if (content.length < 100) { alert("正文太短，先写点内容"); return; }
+  const ch = findChapter(curProj, n);
+  curProj.chapters[n] = { title: ch?.title || "", content, signcheck: null };
+
+  $("saveChBtn").disabled = true;
+  $("saveChBtn").textContent = "记忆更新中…";
+  try {
+    // 1. 记忆更新（LLM 总结）
+    const sumRaw = await callLLM(buildSummaryPrompt(curProj, n, content), getCreds(), { temperature: 0.3 });
+    const m = sumRaw.match(/\{[\s\S]*\}/);
+    if (m) {
+      const sum = JSON.parse(m[0]);
+      curProj.memory.chapter_summaries.push({ n, summary: sum.summary || "" });
+      curProj.memory.timeline.push(`第${n}章：${sum.summary || ""}`);
+      for (const f of (sum.new_foreshadows || []).filter(x => x && x !== "无")) {
+        const id = "F" + (curProj.memory.foreshadows.length + 1);
+        curProj.memory.foreshadows.push({ id, desc: f, planted_ch: n, payoff_ch: null, status: "未收" });
+      }
+    }
+    curProj.memory.last_chapter = Math.max(curProj.memory.last_chapter, n);
+    // 大纲里收伏笔
+    if (ch?.payoff?.length) {
+      for (const pf of ch.payoff) {
+        const f = curProj.memory.foreshadows.find(x => x.status === "未收" && x.desc.includes(pf));
+        if (f) { f.status = "已收"; f.payoff_ch = n; }
+      }
+    }
+  } catch (e) { console.warn("记忆更新失败（不影响保存）:", e.message); }
+
+  // 2. 写审一体：自动过审
+  $("saveChBtn").textContent = "过审检测中…";
+  let scHtml = "";
+  try {
+    const r = analyze(content, curProj.platform || "fanqie");
+    const v = r.platform_verdict.verdict;
+    const vLabel = { pass: "通过", review: "复核", fail: "高风险" }[v];
+    curProj.chapters[n].signcheck = { verdict: v, density: r.signal_density_per_1k };
+    scHtml = `<div class="ch-task">写审一体 · ${PLATFORMS[curProj.platform || "fanqie"].label}：
+      <span class="verdict-${v}">${vLabel}</span>（AI 味密度 ${r.signal_density_per_1k}/千字）
+      ${v !== "pass" ? `<br><span class="muted">${r.platform_verdict.reasons.join("；").slice(0, 120)}</span>` : ""}</div>`;
+  } catch (e) { scHtml = `<div class="ch-task muted">过审检测跳过：${e.message}</div>`; }
+
+  saveProject(curProj);
+  $("writeSigncheck").innerHTML = scHtml;
+  $("writeChN").value = n + 1;
+  $("saveChBtn").disabled = false;
+  $("saveChBtn").textContent = "保存本章（自动更新记忆+过审）";
+  renderMemory();
+  alert(`第 ${n} 章已保存：记忆已更新，过审已跑`);
+}
+
+/* ---------- 记忆面板 ---------- */
+function renderMemory() {
+  if (!curProj) return;
+  $("memTimeline").innerHTML = curProj.memory.timeline.length
+    ? curProj.memory.timeline.map(t => `<div class="ch-row">${esc(t)}</div>`).join("")
+    : `<div class="empty-note">写完第一章后自动生成</div>`;
+  $("memForeshadow").innerHTML = curProj.memory.foreshadows.length
+    ? curProj.memory.foreshadows.map(f =>
+        `<div class="ch-row">[${f.id}] ${esc(f.desc)}（第${f.planted_ch}章埋${f.status === "已收" ? `→第${f.payoff_ch}章收` : "→<b>未收</b>"})</div>`).join("")
+    : `<div class="empty-note">暂无伏笔</div>`;
+  $("constPreview").textContent = buildConstitution(curProj);
+}
+function initMemory() {
+  $("copyConstBtn").onclick = async () => {
+    if (!curProj) return;
+    try { await navigator.clipboard.writeText(buildConstitution(curProj)); alert("已复制"); }
+    catch { alert("复制失败，请手动选择复制"); }
+  };
+}
+
+safeInit("modeSwitch", initModeSwitch);
+safeInit("wProjects", initProjects);
+safeInit("wSetting", initSetting);
+safeInit("wOutline", initOutline);
+safeInit("wWriting", initWriting);
+safeInit("wMemory", initMemory);
 </script>
 </body>
 </html>

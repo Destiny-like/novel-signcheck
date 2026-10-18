@@ -374,3 +374,297 @@ safeInit("checklist", renderChecklist);
 safeInit("byok", initBYOK);
 safeInit("stepNav", initStepNav);
 safeInit("pipeline", initPipeline);
+
+/* ================= 写作工作台（Phase 2b-1） ================= */
+import {
+  createProject, buildConstitution, buildChapterPrompt, buildSummaryPrompt,
+  findChapter, nextChapterN, callLLM,
+  saveProject, loadAllProjects, deleteProject,
+} from "./nodes/writing.js";
+
+let curProj = null;
+const getCreds = () => {
+  const s = loadBYOK();
+  return { key: s.key || "", endpoint: s.endpoint || "https://api.deepseek.com/v1", model: $("apiModel").value.trim() || "deepseek-chat" };
+};
+
+/* ---------- 模式切换 ---------- */
+function initModeSwitch() {
+  const setMode = (m) => {
+    document.body.dataset.mode = m;
+    $("modeCheck").classList.toggle("active", m === "check");
+    $("modeWrite").classList.toggle("active", m === "write");
+    $("stepNav").hidden = m !== "check";
+    $("writeNav").hidden = m !== "write";
+    document.querySelectorAll("main > section.panel").forEach(s => {
+      const isWrite = s.classList.contains("write-panel");
+      s.hidden = (m === "check") ? isWrite : !isWrite;
+    });
+    if (m === "write") renderProjList();
+  };
+  document.body.dataset.mode = "check";
+  $("modeCheck").onclick = () => setMode("check");
+  $("modeWrite").onclick = () => setMode("write");
+  document.querySelectorAll("#writeNav a").forEach(a => {
+    a.onclick = (e) => {
+      e.preventDefault();
+      document.querySelectorAll("main > section.write-panel").forEach(s => s.hidden = true);
+      $(a.dataset.step).hidden = false;
+      if (a.dataset.step === "w-projects") renderProjList();
+      if (a.dataset.step === "w-memory") renderMemory();
+    };
+  });
+}
+
+/* ---------- 作品管理 ---------- */
+function renderProjList() {
+  const all = loadAllProjects();
+  const box = $("projList");
+  const names = Object.keys(all);
+  if (!names.length) { box.innerHTML = `<div class="empty-note">还没有作品，上面新建一本开始写</div>`; return; }
+  box.innerHTML = names.map(n => {
+    const p = all[n];
+    return `<div class="proj-card">
+      <div><div class="t">${esc(n)}</div>
+      <div class="m">${esc(p.genre || "未设题材")} · 已写 ${p.memory.last_chapter} 章 · ${p.characters.length} 人物</div></div>
+      <div>
+        <button class="ghost sm" data-open="${esc(n)}">打开</button>
+        <button class="ghost sm" data-del="${esc(n)}">删除</button>
+      </div>
+    </div>`;
+  }).join("");
+  box.querySelectorAll("[data-open]").forEach(b => b.onclick = () => openProject(b.dataset.open));
+  box.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+    if (confirm(`删除《${b.dataset.del}》？本机数据将清空`)) { deleteProject(b.dataset.del); if (curProj?.title === b.dataset.del) curProj = null; renderProjList(); }
+  });
+}
+function openProject(name) {
+  curProj = loadAllProjects()[name];
+  if (!curProj) return;
+  fillSettingForm();
+  renderOutline();
+  $("writeChN").value = nextChapterN(curProj);
+  alert(`已打开《${name}》`);
+  document.querySelector('[data-step="w-setting"]').click();
+}
+function initProjects() {
+  $("newProjBtn").onclick = () => {
+    const t = $("newProjTitle").value.trim();
+    if (!t) { alert("先填书名"); return; }
+    const all = loadAllProjects();
+    if (all[t]) { alert("同名作品已存在"); return; }
+    const p = createProject(t);
+    saveProject(p);
+    $("newProjTitle").value = "";
+    openProject(t);
+  };
+  $("exportProjBtn").onclick = () => {
+    if (!curProj) { alert("先打开一个作品"); return; }
+    const blob = new Blob([JSON.stringify(curProj, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${curProj.title}.json`;
+    a.click();
+  };
+}
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ---------- 设定编辑器 ---------- */
+function fillSettingForm() {
+  if (!curProj) return;
+  $("setTitle").value = curProj.title;
+  $("setGenre").value = curProj.genre || "";
+  $("setPlatform").value = curProj.platform || "fanqie";
+  $("wvEra").value = curProj.worldview.era || "";
+  $("wvPower").value = curProj.worldview.power_system || "";
+  $("wvFactions").value = curProj.worldview.factions || "";
+  $("wvRules").value = curProj.worldview.rules || "";
+  renderCharList();
+}
+function renderCharList() {
+  const box = $("charList");
+  box.innerHTML = curProj.characters.map((c, i) => `
+    <div class="char-card">
+      <div class="form-grid">
+        <label>姓名<input data-ci="${i}" data-k="name" value="${esc(c.name)}"></label>
+        <label>定位<input data-ci="${i}" data-k="role" value="${esc(c.role)}" placeholder="主角/配角/反派"></label>
+        <label>性格<input data-ci="${i}" data-k="traits" value="${esc(c.traits)}"></label>
+        <label>目标<input data-ci="${i}" data-k="goal" value="${esc(c.goal)}"></label>
+        <label>当前状态<input data-ci="${i}" data-k="status" value="${esc(c.status)}"></label>
+        <label>成长线<input data-ci="${i}" data-k="arc" value="${esc(c.arc)}"></label>
+      </div>
+      <button class="ghost sm" data-delchar="${i}">删除</button>
+    </div>`).join("");
+  box.querySelectorAll("[data-ci]").forEach(inp => inp.onchange = () => {
+    curProj.characters[+inp.dataset.ci][inp.dataset.k] = inp.value;
+  });
+  box.querySelectorAll("[data-delchar]").forEach(b => b.onclick = () => {
+    curProj.characters.splice(+b.dataset.delchar, 1);
+    saveProject(curProj); renderCharList();
+  });
+}
+function initSetting() {
+  $("addCharBtn").onclick = () => {
+    if (!curProj) { alert("先新建/打开作品"); return; }
+    curProj.characters.push({ name: "", role: "", traits: "", goal: "", status: "", arc: "" });
+    renderCharList();
+  };
+  $("saveSettingBtn").onclick = () => {
+    if (!curProj) { alert("先新建/打开作品"); return; }
+    curProj.genre = $("setGenre").value.trim();
+    curProj.platform = $("setPlatform").value;
+    curProj.worldview = {
+      era: $("wvEra").value.trim(), power_system: $("wvPower").value.trim(),
+      factions: $("wvFactions").value.trim(), rules: $("wvRules").value.trim(),
+    };
+    saveProject(curProj);
+    alert("设定已保存");
+  };
+}
+
+/* ---------- 大纲编辑器 ---------- */
+function renderOutline() {
+  const box = $("outlineList");
+  if (!curProj) { box.innerHTML = `<div class="empty-note">先新建/打开作品</div>`; return; }
+  box.innerHTML = curProj.outline.map((vol, vi) => `
+    <div class="vol-block">
+      <h4>${esc(vol.volume || `第${vi + 1}卷`)} <button class="ghost sm" data-addch="${vi}">+ 加章</button></h4>
+      ${(vol.chapters || []).map((ch, ci) => `
+        <div class="ch-row">
+          <input class="n" data-vi="${vi}" data-ci="${ci}" data-k="n" type="number" value="${ch.n}" title="章节号">
+          <input class="tt" data-vi="${vi}" data-ci="${ci}" data-k="title" value="${esc(ch.title)}" placeholder="章节标题">
+          <input class="bt" data-vi="${vi}" data-ci="${ci}" data-k="beats" value="${esc(ch.beats)}" placeholder="情节点（一句话）">
+        </div>`).join("")}
+    </div>`).join("");
+  box.querySelectorAll("[data-addch]").forEach(b => b.onclick = () => {
+    const vol = curProj.outline[+b.dataset.addch];
+    const maxN = Math.max(0, ...curProj.outline.flatMap(v => (v.chapters || []).map(c => c.n || 0)));
+    vol.chapters.push({ n: maxN + 1, title: "", beats: "", pov: "", plant: [], payoff: [] });
+    saveProject(curProj); renderOutline();
+  });
+  box.querySelectorAll(".ch-row input").forEach(inp => inp.onchange = () => {
+    const ch = curProj.outline[+inp.dataset.vi].chapters[+inp.dataset.ci];
+    ch[inp.dataset.k] = inp.dataset.k === "n" ? +inp.value : inp.value;
+    saveProject(curProj);
+  });
+}
+function initOutline() {
+  $("addVolBtn").onclick = () => {
+    if (!curProj) { alert("先新建/打开作品"); return; }
+    const name = $("newVolName").value.trim() || `第${curProj.outline.length + 1}卷`;
+    curProj.outline.push({ volume: name, summary: "", chapters: [] });
+    $("newVolName").value = "";
+    saveProject(curProj); renderOutline();
+  };
+}
+
+/* ---------- 写作区 ---------- */
+function initWriting() {
+  $("writeArea").oninput = () => $("writeCount").textContent = `${$("writeArea").value.length} 字`;
+  $("loadChBtn").onclick = () => {
+    if (!curProj) { alert("先新建/打开作品"); return; }
+    const n = +$("writeChN").value;
+    const ch = findChapter(curProj, n);
+    const saved = curProj.chapters[n];
+    $("chTask").innerHTML = ch
+      ? `<b>第 ${n} 章 · ${esc(ch.title)}</b><br>情节点：${esc(ch.beats || "（未填）")}<br>视角：${esc(ch.pov || "主角")}`
+      : `<b>第 ${n} 章</b>（大纲里没这章，将按宪法自由发挥）`;
+    if (saved?.content) { $("writeArea").value = saved.content; $("writeCount").textContent = `${saved.content.length} 字`; }
+  };
+  $("genChBtn").onclick = async () => {
+    if (!curProj) { alert("先新建/打开作品"); return; }
+    const n = +$("writeChN").value;
+    $("genChBtn").disabled = true;
+    $("genChBtn").textContent = "生成中…";
+    try {
+      const text = await callLLM(buildChapterPrompt(curProj, n), getCreds(), { temperature: 0.8 });
+      $("writeArea").value = text.trim();
+      $("writeCount").textContent = `${$("writeArea").value.length} 字`;
+    } catch (e) { alert("生成失败：" + e.message); }
+    $("genChBtn").disabled = false;
+    $("genChBtn").textContent = "AI 生成初稿";
+  };
+  $("saveChBtn").onclick = saveChapter;
+}
+
+async function saveChapter() {
+  if (!curProj) { alert("先新建/打开作品"); return; }
+  const n = +$("writeChN").value;
+  const content = $("writeArea").value.trim();
+  if (content.length < 100) { alert("正文太短，先写点内容"); return; }
+  const ch = findChapter(curProj, n);
+  curProj.chapters[n] = { title: ch?.title || "", content, signcheck: null };
+
+  $("saveChBtn").disabled = true;
+  $("saveChBtn").textContent = "记忆更新中…";
+  try {
+    // 1. 记忆更新（LLM 总结）
+    const sumRaw = await callLLM(buildSummaryPrompt(curProj, n, content), getCreds(), { temperature: 0.3 });
+    const m = sumRaw.match(/\{[\s\S]*\}/);
+    if (m) {
+      const sum = JSON.parse(m[0]);
+      curProj.memory.chapter_summaries.push({ n, summary: sum.summary || "" });
+      curProj.memory.timeline.push(`第${n}章：${sum.summary || ""}`);
+      for (const f of (sum.new_foreshadows || []).filter(x => x && x !== "无")) {
+        const id = "F" + (curProj.memory.foreshadows.length + 1);
+        curProj.memory.foreshadows.push({ id, desc: f, planted_ch: n, payoff_ch: null, status: "未收" });
+      }
+    }
+    curProj.memory.last_chapter = Math.max(curProj.memory.last_chapter, n);
+    // 大纲里收伏笔
+    if (ch?.payoff?.length) {
+      for (const pf of ch.payoff) {
+        const f = curProj.memory.foreshadows.find(x => x.status === "未收" && x.desc.includes(pf));
+        if (f) { f.status = "已收"; f.payoff_ch = n; }
+      }
+    }
+  } catch (e) { console.warn("记忆更新失败（不影响保存）:", e.message); }
+
+  // 2. 写审一体：自动过审
+  $("saveChBtn").textContent = "过审检测中…";
+  let scHtml = "";
+  try {
+    const r = analyze(content, curProj.platform || "fanqie");
+    const v = r.platform_verdict.verdict;
+    const vLabel = { pass: "通过", review: "复核", fail: "高风险" }[v];
+    curProj.chapters[n].signcheck = { verdict: v, density: r.signal_density_per_1k };
+    scHtml = `<div class="ch-task">写审一体 · ${PLATFORMS[curProj.platform || "fanqie"].label}：
+      <span class="verdict-${v}">${vLabel}</span>（AI 味密度 ${r.signal_density_per_1k}/千字）
+      ${v !== "pass" ? `<br><span class="muted">${r.platform_verdict.reasons.join("；").slice(0, 120)}</span>` : ""}</div>`;
+  } catch (e) { scHtml = `<div class="ch-task muted">过审检测跳过：${e.message}</div>`; }
+
+  saveProject(curProj);
+  $("writeSigncheck").innerHTML = scHtml;
+  $("writeChN").value = n + 1;
+  $("saveChBtn").disabled = false;
+  $("saveChBtn").textContent = "保存本章（自动更新记忆+过审）";
+  renderMemory();
+  alert(`第 ${n} 章已保存：记忆已更新，过审已跑`);
+}
+
+/* ---------- 记忆面板 ---------- */
+function renderMemory() {
+  if (!curProj) return;
+  $("memTimeline").innerHTML = curProj.memory.timeline.length
+    ? curProj.memory.timeline.map(t => `<div class="ch-row">${esc(t)}</div>`).join("")
+    : `<div class="empty-note">写完第一章后自动生成</div>`;
+  $("memForeshadow").innerHTML = curProj.memory.foreshadows.length
+    ? curProj.memory.foreshadows.map(f =>
+        `<div class="ch-row">[${f.id}] ${esc(f.desc)}（第${f.planted_ch}章埋${f.status === "已收" ? `→第${f.payoff_ch}章收` : "→<b>未收</b>"})</div>`).join("")
+    : `<div class="empty-note">暂无伏笔</div>`;
+  $("constPreview").textContent = buildConstitution(curProj);
+}
+function initMemory() {
+  $("copyConstBtn").onclick = async () => {
+    if (!curProj) return;
+    try { await navigator.clipboard.writeText(buildConstitution(curProj)); alert("已复制"); }
+    catch { alert("复制失败，请手动选择复制"); }
+  };
+}
+
+safeInit("modeSwitch", initModeSwitch);
+safeInit("wProjects", initProjects);
+safeInit("wSetting", initSetting);
+safeInit("wOutline", initOutline);
+safeInit("wWriting", initWriting);
+safeInit("wMemory", initMemory);

@@ -15,9 +15,13 @@
       <div class="brand-name">签约前自查</div>
       <div class="brand-sub">网文投稿模拟考</div>
     </div>
-    <span class="ver-badge">v0.5</span>
+    <span class="ver-badge">v0.6</span>
   </div>
   <div class="topbar-right">
+    <div class="mode-switch">
+      <button id="modeCheck" class="mode-btn active">过审工作台</button>
+      <button id="modeWrite" class="mode-btn">写作工作台<span class="tag">2b-1</span></button>
+    </div>
     <span class="policy-mini">番茄 v2026.10.12 · 七猫 v2026.10.16 · 起点 v2026.10.16</span>
     <button id="themeToggle" class="icon-btn" title="切换浅色/深色">◐</button>
   </div>
@@ -32,6 +36,13 @@
       <a href="#step3b" data-step="step3b"><span class="n">4</span><span class="t"><b>改写建议</b><i>按信号定向返工</i></span></a>
       <a href="#step4" data-step="step4"><span class="n">5</span><span class="t"><b>资格自查</b><i>硬性门槛核对</i></span></a>
       <a href="#step5" data-step="step5"><span class="n">6</span><span class="t"><b>深度复核</b><i>BYOK · 五维评分</i></span></a>
+    </nav>
+    <nav id="writeNav" hidden>
+      <a href="#w-projects" data-step="w-projects"><span class="n">📚</span><span class="t"><b>我的作品</b><i>新建·打开·导出</i></span></a>
+      <a href="#w-setting" data-step="w-setting"><span class="n">⚙</span><span class="t"><b>设定</b><i>世界观·人物卡</i></span></a>
+      <a href="#w-outline" data-step="w-outline"><span class="n">🗺</span><span class="t"><b>大纲</b><i>卷·章·情节点</i></span></a>
+      <a href="#w-write" data-step="w-write"><span class="n">✍</span><span class="t"><b>写作</b><i>AI 生成·人工改</i></span></a>
+      <a href="#w-memory" data-step="w-memory"><span class="n">🧠</span><span class="t"><b>记忆</b><i>时间线·伏笔</i></span></a>
     </nav>
     <div class="side-foot">
       <div class="side-foot-title">检测说明</div>
@@ -93,8 +104,79 @@
       <div id="deepResult"></div>
     </section>
 
+    <!-- ============ 写作工作台（Phase 2b-1） ============ -->
+    <section class="panel write-panel" id="w-projects" hidden>
+      <div class="panel-head"><h2>我的作品</h2><span class="panel-desc">项目存本机浏览器，可导出 JSON 备份</span></div>
+      <div class="action-row">
+        <input id="newProjTitle" placeholder="新作品书名">
+        <button id="newProjBtn" class="primary">新建作品</button>
+        <button id="exportProjBtn" class="ghost">导出当前作品 JSON</button>
+      </div>
+      <div id="projList" class="proj-list"></div>
+    </section>
+
+    <section class="panel write-panel" id="w-setting" hidden>
+      <div class="panel-head"><h2>设定</h2><span class="panel-desc">世界观 + 人物卡 = AI 写作的宪法地基</span></div>
+      <div class="form-grid">
+        <label>书名<input id="setTitle"></label>
+        <label>题材<input id="setGenre" placeholder="如：东方玄幻·废柴流"></label>
+        <label>目标平台
+          <select id="setPlatform">
+            <option value="fanqie">番茄小说</option>
+            <option value="qimao">七猫中文网</option>
+            <option value="qidian">起点中文网</option>
+          </select>
+        </label>
+      </div>
+      <h3>世界观</h3>
+      <div class="form-grid">
+        <label>时代背景<textarea id="wvEra" rows="2"></textarea></label>
+        <label>力量体系<textarea id="wvPower" rows="2"></textarea></label>
+        <label>主要势力<textarea id="wvFactions" rows="2"></textarea></label>
+        <label>世界规则<textarea id="wvRules" rows="2"></textarea></label>
+      </div>
+      <h3>人物卡 <button id="addCharBtn" class="ghost sm">+ 加人物</button></h3>
+      <div id="charList"></div>
+      <div class="action-row"><button id="saveSettingBtn" class="primary">保存设定</button></div>
+    </section>
+
+    <section class="panel write-panel" id="w-outline" hidden>
+      <div class="panel-head"><h2>大纲</h2><span class="panel-desc">卷 → 章 → 情节点；伏笔在此登记</span></div>
+      <div class="action-row">
+        <input id="newVolName" placeholder="卷名，如：第一卷 少年行">
+        <button id="addVolBtn" class="ghost">+ 加卷</button>
+      </div>
+      <div id="outlineList"></div>
+    </section>
+
+    <section class="panel write-panel" id="w-write" hidden>
+      <div class="panel-head"><h2>写作</h2><span class="panel-desc">AI 生成初稿 → 人工改 → 保存即自动过审（写审一体）</span></div>
+      <div class="action-row">
+        <label>写第 <input id="writeChN" type="number" min="1" value="1" style="width:64px"> 章</label>
+        <button id="loadChBtn" class="ghost">载入本章任务</button>
+        <button id="genChBtn" class="primary">AI 生成初稿</button>
+      </div>
+      <div id="chTask" class="ch-task"></div>
+      <textarea id="writeArea" rows="14" placeholder="AI 生成的初稿会出现在这里，也可以直接手写……"></textarea>
+      <div class="action-row">
+        <span id="writeCount" class="muted">0 字</span>
+        <button id="saveChBtn" class="primary">保存本章（自动更新记忆+过审）</button>
+      </div>
+      <div id="writeSigncheck"></div>
+    </section>
+
+    <section class="panel write-panel" id="w-memory" hidden>
+      <div class="panel-head"><h2>长篇记忆</h2><span class="panel-desc">时间线 · 伏笔追踪 · SoloEnt.md 项目宪法</span></div>
+      <div class="mem-cols">
+        <div><h3>时间线</h3><div id="memTimeline"></div></div>
+        <div><h3>伏笔</h3><div id="memForeshadow"></div></div>
+      </div>
+      <h3>SoloEnt.md 预览 <button id="copyConstBtn" class="ghost sm">复制</button></h3>
+      <pre id="constPreview" class="const-preview"></pre>
+    </section>
+
     <footer>
-      signcheck-novel-zh v0.5 · 过签管线（Phase 2a）· 策略卡带版本号，过期 90 天未更新会预警
+      signcheck-novel-zh v0.6 · 过审管线（Phase 2a）+ 写作工作台（Phase 2b-1）· 策略卡带版本号，过期 90 天未更新会预警
     </footer>
   </main>
 </div>
