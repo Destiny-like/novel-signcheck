@@ -1220,7 +1220,7 @@ return p.memory.last_chapter + 1;
 }
 
 // ---------- BYOK 调用（凭证由主模块从 signcheck_byok 传入） ----------
-export async function callLLM(prompt, creds = {}, opts = {}) {
+async function callLLM(prompt, creds = {}, opts = {}) {
 const endpoint = (creds.endpoint || "https://api.deepseek.com/v1").replace(/\/$/, "");
 const model = creds.model || "deepseek-chat";
 const key = creds.key || "";
@@ -1636,16 +1636,16 @@ $("inputText").addEventListener("input", (e) => {
 });
 
 /* ---------- BYOK：AI 深度复核 ---------- */
-const LS_KEY = "signcheck_byok";
+const BYOK_LS_KEY = "signcheck_byok";
 function loadBYOK() {
-  try { return JSON.parse(safeStorage.get(LS_KEY) || "{}"); } catch { return {}; }
+  try { return JSON.parse(safeStorage.get(BYOK_LS_KEY) || "{}"); } catch { return {}; }
 }
 function initBYOK() {
   const saved = loadBYOK();
   if (saved.key) $("apiKey").value = saved.key;
   if (saved.endpoint) $("apiEndpoint").value = saved.endpoint;
   $("saveKeyBtn").onclick = () => {
-    safeStorage.set(LS_KEY, JSON.stringify({
+    safeStorage.set(BYOK_LS_KEY, JSON.stringify({
       key: $("apiKey").value.trim(),
       endpoint: $("apiEndpoint").value.trim() || "https://api.deepseek.com/v1",
     }));

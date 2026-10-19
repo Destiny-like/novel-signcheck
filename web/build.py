@@ -18,8 +18,8 @@ def strip_module_js(path: Path) -> str:
     src = path.read_text(encoding="utf-8")
     # 去掉 import 行（含 from "./nodes/xxx.js" 多行 import）
     src = re.sub(r"^import\s+[\s\S]*?;\s*$", "", src, flags=re.M)
-    # export const X -> const X ；export function f -> function f
-    src = re.sub(r"^export\s+(?=const|let|var|function)", "", src, flags=re.M)
+    # export [async] function f -> [async] function f ；export const X -> const X
+    src = re.sub(r"^export\s+(?=(?:async\s+)?(?:const|let|var|function|class))", "", src, flags=re.M)
     return src.strip()
 
 
