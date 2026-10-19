@@ -219,6 +219,28 @@ footer {
   .pcard { border-right: none; border-bottom: 1px solid var(--hairline); }
 }
 
+/* ---------- 创作流程导航（7 步，引导不强制） ---------- */
+.flow-bar {
+  display: flex; align-items: center; gap: 0;
+  margin-bottom: 24px; padding: 0;
+  border-bottom: 1px solid var(--hairline);
+  overflow-x: auto;
+}
+.flow-step {
+  flex: 1; min-width: 90px; text-align: center;
+  padding: 10px 4px 12px; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  color: var(--ink-3); transition: all .12s;
+  white-space: nowrap;
+}
+.flow-step .fl-n { font-size: 11px; letter-spacing: 1px; display: block; }
+.flow-step .fl-t { font-family: var(--serif); font-size: 14px; letter-spacing: 2px; display: block; margin-top: 2px; }
+.flow-step:hover { color: var(--ink); }
+.flow-step.done { color: var(--ink); }
+.flow-step.done .fl-n::after { content: " ✓"; color: var(--pass); }
+.flow-step.current { border-bottom-color: var(--ink); color: var(--ink); }
+.flow-step.current .fl-t { font-weight: 700; }
+
 </style>
 </head>
 <body>
@@ -238,6 +260,7 @@ footer {
         <div class="nav-group-title">写作</div>
         <a href="#w-write" data-panels="w-write" class="active"><span class="n">✍</span><span class="t"><b>写作</b><i>AI 生成 · 人工改</i></span></a>
         <a href="#w-setting" data-panels="w-setting"><span class="n">⚙</span><span class="t"><b>设定</b><i>世界观 · 人物卡</i></span></a>
+        <a href="#w-synopsis" data-panels="w-synopsis"><span class="n">📝</span><span class="t"><b>梗概</b><i>一句话 · 详细梗概</i></span></a>
         <a href="#w-outline" data-panels="w-outline"><span class="n">🗺</span><span class="t"><b>大纲</b><i>卷 · 章 · 情节点</i></span></a>
         <a href="#w-memory" data-panels="w-memory"><span class="n">🧠</span><span class="t"><b>记忆</b><i>时间线 · 伏笔</i></span></a>
       </div>
@@ -264,6 +287,8 @@ footer {
   </aside>
 
   <main>
+    <div id="flowBar" class="flow-bar"></div>
+
     <!-- ============ 写作（首页） ============ -->
     <section class="panel" id="w-write">
       <div class="panel-head"><h2>写作</h2><span class="panel-desc">AI 生成初稿 → 人工改 → 保存即自动过审（写审一体）</span></div>
@@ -308,6 +333,16 @@ footer {
       <div class="action-row"><button id="saveSettingBtn" class="primary">保存设定</button></div>
     </section>
 
+    <section class="panel" id="w-synopsis" hidden>
+      <div class="panel-head"><h2>梗概</h2><span class="panel-desc">一句话说清这本书，详细梗概定调</span></div>
+      <div class="action-row">
+        <button id="genSynopsisBtn" class="ghost">✨ AI 生成梗概</button>
+        <span id="synopsisSaved" class="muted"></span>
+      </div>
+      <label>一句话梗概（30 字内）<input id="synLogline" placeholder="如：废柴少年得神秘玉佩，逆袭成丹道宗师"></label>
+      <label>详细梗概（300–500 字）<textarea id="synDetail" rows="8" placeholder="开端→发展→高潮→结局"></textarea></label>
+    </section>
+
     <section class="panel" id="w-outline" hidden>
       <div class="panel-head"><h2>大纲</h2><span class="panel-desc">卷 → 章 → 情节点；伏笔在此登记</span></div>
       <div class="action-row">
@@ -326,6 +361,12 @@ footer {
         <div><h3>时间线</h3><div id="memTimeline"></div></div>
         <div><h3>伏笔</h3><div id="memForeshadow"></div></div>
       </div>
+      <h3>备忘录 <span class="muted">灵感/参考随手记</span></h3>
+      <div class="action-row">
+        <input id="memoInput" placeholder="记一句灵感、一段参考…">
+        <button id="addMemoBtn" class="ghost">+ 记一笔</button>
+      </div>
+      <div id="memoList"></div>
       <h3>SoloEnt.md 预览 <button id="copyConstBtn" class="ghost sm">复制</button></h3>
       <pre id="constPreview" class="const-preview"></pre>
     </section>
@@ -1065,6 +1106,7 @@ genre: "",
 platform: "fanqie",
 worldview: { era: "", power_system: "", factions: "", rules: ""},
 characters: [],
+synopsis: { logline: "", detail: "", updated_at: "" },
 outline: [],
 memory: {
 timeline: [],
@@ -1220,7 +1262,7 @@ return p.memory.last_chapter + 1;
 }
 
 // ---------- BYOK 调用（凭证由主模块从 signcheck_byok 传入） ----------
-async function callLLM(prompt, creds = {}, opts = {}) {
+export async function callLLM(prompt, creds = {}, opts = {}) {
 const endpoint = (creds.endpoint || "https://api.deepseek.com/v1").replace(/\/$/, "");
 const model = creds.model || "deepseek-chat";
 const key = creds.key || "";
@@ -1361,6 +1403,11 @@ function createDemoProject() {
   const p = createProject("剑啸江湖（示例）");
   p.genre = "武侠·复仇流";
   p.platform = "qidian";
+  p.synopsis = {
+    logline: "青城弃徒沈砚查灭门真相，潜入黑水帮复仇",
+    detail: "大梁年间，青城剑派一夜被灭，弃徒沈砚被师父拼死送出。流落黑水镇结识苏晚晴，循断剑指印查到黑水帮。为报灭门之仇，沈砚隐忍混入黑水帮，一步步接近真相——却发现灭门背后另有朝堂黑手。终极一战，沈砚剑意通玄，手刃仇敌，立派传剑。",
+    updated_at: "",
+  };
   p.worldview = {
     era: "架空王朝，大梁年间，武林与朝堂并立",
     power_system: "内功境界：三流/二流/一流/后天/先天，剑法分九品",
@@ -1415,6 +1462,62 @@ const DEMO_DETECT_TEXT = `他握紧了拳头。他咬紧了牙关。他一步踏
 说完，他转身离去。背影坚定。步伐稳健。眼神锐利。
 
 夜色渐深。月光如水。万籁俱寂。`;
+
+// ---------- 梗概生成 prompt ----------
+function buildSynopsisPrompt(p) {
+const chars = p.characters.map(c => `${c.name}（${c.role}）：${c.traits}｜目标${c.goal}`).join("\n");
+return `你是资深网文编辑。请根据以下设定，写一份故事梗概。
+
+【题材】${p.genre || "未定"}
+【世界观】${p.worldview.era}｜${p.worldview.power_system}｜${p.worldview.factions}
+【人物】
+${chars || "（暂无）"}
+
+要求：
+1. 一句话梗概：30 字以内，说清主角+核心冲突+最大看点
+2. 详细梗概：300–500 字，包含开端（钩子）、发展（核心冲突升级）、高潮（终极对决）、结局（落点）
+3. 语言有网文感，不说空话
+
+严格按以下 JSON 输出：
+{"logline": "一句话梗概", "detail": "详细梗概"}`;
+}
+
+// ---------- 创作流程（7 步，引导不强制） ----------
+const WRITE_FLOW = [
+  { id: "w-setting", label: "设定", desc: "世界观·人物卡" },
+  { id: "w-synopsis", label: "梗概", desc: "一句话+详细梗概" },
+  { id: "w-outline", label: "大纲", desc: "卷·章·情节点" },
+  { id: "w-write", label: "写作", desc: "AI 生成·人工改" },
+  { id: "w-review", label: "评审", desc: "编辑视角五维" },
+  { id: "w-signcheck", label: "过审", desc: "写审一体" },
+  { id: "w-memory", label: "记忆", desc: "时间线·伏笔" },
+];
+function flowProgress(p) {
+  // 每步完成度：设定（世界观+≥1人物）、梗概（有内容）、大纲（≥1章）、
+  // 写作（≥1章已写）、评审（≥1章有评审）、过审（≥1章有过审）、记忆（时间线非空）
+  const done = {
+    "w-setting": !!(p.worldview.era && p.characters.length),
+    "w-synopsis": !!(p.synopsis && (p.synopsis.logline || p.synopsis.detail)),
+    "w-outline": p.outline.some(v => (v.chapters || []).length),
+    "w-write": Object.keys(p.chapters || {}).length > 0,
+    "w-review": Object.values(p.chapters || {}).some(c => c.review),
+    "w-signcheck": Object.values(p.chapters || {}).some(c => c.signcheck),
+    "w-memory": (p.memory.timeline || []).length > 0,
+  };
+  return WRITE_FLOW.map(s => ({ ...s, done: !!done[s.id] }));
+}
+
+// ---------- 备忘录：灵感/参考随手记，写书时可引用 ----------
+function getMemos(p) {
+  if (!p.memos) p.memos = [];
+  return p.memos;
+}
+function addMemo(p, text) {
+  if (!p.memos) p.memos = [];
+  const t = new Date();
+  p.memos.unshift({ text: text.trim(), at: `${t.getMonth() + 1}/${t.getDate()} ${t.getHours()}:${String(t.getMinutes()).padStart(2, "0")}` });
+  return p.memos;
+}
 
 const $ = (id) => document.getElementById(id);
 let selectedPlatform = "fanqie";
@@ -1636,16 +1739,16 @@ $("inputText").addEventListener("input", (e) => {
 });
 
 /* ---------- BYOK：AI 深度复核 ---------- */
-const BYOK_LS_KEY = "signcheck_byok";
+const LS_KEY = "signcheck_byok";
 function loadBYOK() {
-  try { return JSON.parse(safeStorage.get(BYOK_LS_KEY) || "{}"); } catch { return {}; }
+  try { return JSON.parse(safeStorage.get(LS_KEY) || "{}"); } catch { return {}; }
 }
 function initBYOK() {
   const saved = loadBYOK();
   if (saved.key) $("apiKey").value = saved.key;
   if (saved.endpoint) $("apiEndpoint").value = saved.endpoint;
   $("saveKeyBtn").onclick = () => {
-    safeStorage.set(BYOK_LS_KEY, JSON.stringify({
+    safeStorage.set(LS_KEY, JSON.stringify({
       key: $("apiKey").value.trim(),
       endpoint: $("apiEndpoint").value.trim() || "https://api.deepseek.com/v1",
     }));
@@ -1805,6 +1908,7 @@ function initSideNav() {
     document.querySelectorAll("main > section.panel").forEach(s => {
       s.hidden = !want.has(s.id);
     });
+    renderFlowBar(ids[0]);
   };
   document.querySelectorAll("#sideNav a").forEach(a => {
     a.onclick = (e) => {
@@ -1815,11 +1919,34 @@ function initSideNav() {
       showPanels(ids);
       if (ids.includes("w-projects")) renderProjList();
       if (ids.includes("w-memory")) renderMemory();
+      if (ids.includes("w-synopsis")) renderSynopsis();
       window.scrollTo({ top: 0 });
     };
   });
   // 默认首页：写作
   showPanels(["w-write"]);
+}
+
+/* ---------- 创作流程导航（7 步，引导不强制） ---------- */
+function renderFlowBar(currentId) {
+  const bar = $("flowBar");
+  if (!curProj) { bar.innerHTML = ""; bar.style.display = "none"; return; }
+  bar.style.display = "flex";
+  const steps = flowProgress(curProj);
+  // 评审/过审没有独立面板，点它们跳到写作页
+  const panelOf = { "w-review": "w-write", "w-signcheck": "w-write" };
+  bar.innerHTML = steps.map((s, i) =>
+    `<div class="flow-step${s.done ? " done" : ""}${s.id === currentId ? " current" : ""}" data-goto="${panelOf[s.id] || s.id}" title="${s.desc}">
+      <span class="fl-n">0${i + 1}</span><span class="fl-t">${s.label}</span>
+    </div>`).join("");
+  bar.querySelectorAll(".flow-step").forEach(el => {
+    el.onclick = () => {
+      const target = el.dataset.goto;
+      const link = document.querySelector(`#sideNav a[data-panels="${target}"]`);
+      if (link) link.click();
+      else if (target === "w-write") document.querySelector(`#sideNav a[data-panels="w-write"]`).click();
+    };
+  });
 }
 
 /* ---------- 作品管理 ---------- */
@@ -1926,14 +2053,71 @@ function initSetting() {
   };
   $("saveSettingBtn").onclick = () => {
     if (!curProj) { alert("先新建/打开作品"); return; }
-    curProj.genre = $("setGenre").value.trim();
-    curProj.platform = $("setPlatform").value;
-    curProj.worldview = {
-      era: $("wvEra").value.trim(), power_system: $("wvPower").value.trim(),
-      factions: $("wvFactions").value.trim(), rules: $("wvRules").value.trim(),
-    };
+    collectSetting();
     saveProject(curProj);
     alert("设定已保存");
+  };
+  // 自动保存：输入停 1.5 秒后存
+  let settingTimer = null;
+  ["setGenre", "setTitle", "wvEra", "wvPower", "wvFactions", "wvRules"].forEach(id => {
+    $(id).addEventListener("input", () => {
+      if (!curProj) return;
+      clearTimeout(settingTimer);
+      settingTimer = setTimeout(() => { collectSetting(); saveProject(curProj); }, 1500);
+    });
+  });
+}
+function collectSetting() {
+  curProj.genre = $("setGenre").value.trim();
+  curProj.platform = $("setPlatform").value;
+  curProj.worldview = {
+    era: $("wvEra").value.trim(), power_system: $("wvPower").value.trim(),
+    factions: $("wvFactions").value.trim(), rules: $("wvRules").value.trim(),
+  };
+}
+
+/* ---------- 梗概 ---------- */
+function renderSynopsis() {
+  if (!curProj) return;
+  if (!curProj.synopsis) curProj.synopsis = { logline: "", detail: "", updated_at: "" };
+  $("synLogline").value = curProj.synopsis.logline || "";
+  $("synDetail").value = curProj.synopsis.detail || "";
+  $("synopsisSaved").textContent = curProj.synopsis.updated_at ? `已自动保存 ${curProj.synopsis.updated_at}` : "";
+}
+function initSynopsis() {
+  let synTimer = null;
+  const autoSave = () => {
+    if (!curProj) return;
+    clearTimeout(synTimer);
+    synTimer = setTimeout(() => {
+      if (!curProj.synopsis) curProj.synopsis = {};
+      curProj.synopsis.logline = $("synLogline").value.trim();
+      curProj.synopsis.detail = $("synDetail").value.trim();
+      const t = new Date();
+      curProj.synopsis.updated_at = `${t.getHours()}:${String(t.getMinutes()).padStart(2, "0")}`;
+      saveProject(curProj);
+      $("synopsisSaved").textContent = `已自动保存 ${curProj.synopsis.updated_at}`;
+      renderFlowBar("w-synopsis");
+    }, 1500);
+  };
+  $("synLogline").addEventListener("input", autoSave);
+  $("synDetail").addEventListener("input", autoSave);
+  $("genSynopsisBtn").onclick = async () => {
+    if (!curProj) { alert("先新建/打开作品"); return; }
+    const creds = getCreds();
+    if (!creds.key) { alert("请先在设置里填 API Key"); return; }
+    const btn = $("genSynopsisBtn");
+    btn.textContent = "生成中…"; btn.disabled = true;
+    try {
+      const raw = await callLLM(buildSynopsisPrompt(curProj), creds, { temperature: 0.7 });
+      const m = raw.match(/\{[\s\S]*\}/);
+      if (!m) throw new Error("解析失败");
+      const gen = JSON.parse(m[0]);
+      $("synLogline").value = gen.logline || "";
+      $("synDetail").value = gen.detail || "";
+      autoSave();
+    } catch (e) { alert("生成失败：" + e.message); }
+    btn.textContent = "✨ AI 生成梗概"; btn.disabled = false;
   };
 }
 
@@ -2160,6 +2344,7 @@ function renderMemory() {
       }).join("")
     : `<div class="empty-note">暂无伏笔</div>`;
   $("constPreview").textContent = buildConstitution(curProj);
+  renderMemoList();
 }
 function initMemory() {
   $("copyConstBtn").onclick = async () => {
@@ -2167,11 +2352,34 @@ function initMemory() {
     try { await navigator.clipboard.writeText(buildConstitution(curProj)); alert("已复制"); }
     catch { alert("复制失败，请手动选择复制"); }
   };
+  // 备忘录
+  $("addMemoBtn").onclick = () => {
+    if (!curProj) { alert("先新建/打开作品"); return; }
+    const t = $("memoInput").value.trim();
+    if (!t) return;
+    addMemo(curProj, t);
+    saveProject(curProj);
+    $("memoInput").value = "";
+    renderMemoList();
+  };
+}
+function renderMemoList() {
+  const box = $("memoList");
+  if (!curProj) { box.innerHTML = ""; return; }
+  const memos = getMemos(curProj);
+  box.innerHTML = memos.length
+    ? memos.map((m, i) => `<div class="ch-row">${esc(m.text)} <span class="muted">${esc(m.at)}</span> <button class="ghost sm" data-delmemo="${i}">删</button></div>`).join("")
+    : `<div class="empty-note">暂无备忘</div>`;
+  box.querySelectorAll("[data-delmemo]").forEach(b => b.onclick = () => {
+    curProj.memos.splice(+b.dataset.delmemo, 1);
+    saveProject(curProj); renderMemoList();
+  });
 }
 
 safeInit("sideNav", initSideNav);
 safeInit("wProjects", initProjects);
 safeInit("wSetting", initSetting);
+safeInit("wSynopsis", initSynopsis);
 safeInit("wOutline", initOutline);
 safeInit("wWriting", initWriting);
 safeInit("wMemory", initMemory);
